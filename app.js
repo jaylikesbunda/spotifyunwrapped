@@ -151,11 +151,6 @@ document.addEventListener('DOMContentLoaded', () => {
     profileInfo.classList.add('user-info');
 }
 
-		// Function to toggle the expansion of a stats block
-	function toggleStatsBlockExpansion(blockId) {
-		const block = document.getElementById(blockId);
-		block.classList.toggle('expanded');
-	}
 
 	// Updated function to handle the Chart.js display
 	function displayListeningStatistics(data) {
