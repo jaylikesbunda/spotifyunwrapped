@@ -24,7 +24,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Check if timeRangeDropdown exists before adding an event listener
     if (timeRangeDropdown) {
-        timeRangeDropdown.addEventListener('change', handleTimeRangeChange); // Listener for time range changes
+	  // Event listener for time range changes
+	  timeRangeDropdown.addEventListener('change', async (event) => {
+		const timeRange = event.target.value;
+		const accessToken = sessionStorage.getItem('accessToken');
+		if (accessToken) {
+		  clearPreviousContent(); // Clear previous data and buttons
+		  await fetchAllData(accessToken, timeRange); // Fetch new data
+		  await generateSummary(accessToken, timeRange); // Generate the summary for the new time range
+		}
+	  });
+
+
     }
 
     // Handling OAuth redirection
@@ -69,11 +80,25 @@ document.addEventListener('DOMContentLoaded', () => {
 	}
 
 	function handleTimeRangeChange(event) {
-		const timeRange = event.target.value;
-		const accessToken = sessionStorage.getItem('accessToken');
-		if (accessToken) {
-			fetchAllData(accessToken, timeRange); // Fetch data with the selected time range
+	  const timeRange = event.target.value;
+	  const accessToken = sessionStorage.getItem('accessToken');
+	  if (accessToken) {
+		clearPreviousContent(); // Clear previous data and buttons
+		fetchAllData(accessToken, timeRange); // Fetch new data
+	  }
+	}
+
+	function clearPreviousContent() {
+	  const sections = ['top-tracks', 'top-artists', 'listening-statistics'];
+	  sections.forEach((sectionId) => {
+		const section = document.getElementById(sectionId);
+		section.innerHTML = ''; // Clear section content
+		// Remove existing "Show More" button if present
+		const showMoreButton = section.parentNode.querySelector('.show-more');
+		if (showMoreButton) {
+		  showMoreButton.remove();
 		}
+	  });
 	}
 
 	function showLoading() {
@@ -95,24 +120,27 @@ document.addEventListener('DOMContentLoaded', () => {
 	}
 
 
-	// Function to fetch all user data including profile, top tracks, and top artists
-	async function fetchAllData(token, timeRange = 'medium_term') {
-		showLoading(); // Show loading indicator
-		try {
-			const profile = await fetchData('https://api.spotify.com/v1/me', token);
-			const topTracks = await fetchData(`https://api.spotify.com/v1/me/top/tracks?time_range=${timeRange}`, token);
-			const topArtists = await fetchData(`https://api.spotify.com/v1/me/top/artists?time_range=${timeRange}`, token);
-			
-			displayUserProfile(profile);
-			displayTopTracks(topTracks);
-			displayTopArtists(topArtists);
-			updateAppState(true); // Update UI to reflect logged-in state
-		} catch (error) {
-			handleError(error); // Handle any errors that occur during the fetch process
-		} finally {
-			hideLoading(); // Hide loading indicator once data is fetched
-		}
-	}
+   // This function will be invoked after fetching the profile, top tracks, and artists
+    async function fetchAllData(token, timeRange = 'medium_term') {
+      showLoading(); // Show loading indicator
+      try {
+        const profile = await fetchData('https://api.spotify.com/v1/me', token);
+        const topTracks = await fetchData(`https://api.spotify.com/v1/me/top/tracks?time_range=${timeRange}`, token);
+        const topArtists = await fetchData(`https://api.spotify.com/v1/me/top/artists?time_range=${timeRange}`, token);
+      
+        displayUserProfile(profile);
+        displayTopTracks(topTracks);
+        displayTopArtists(topArtists);
+        const listeningStats = await fetchListeningStatistics(token, timeRange); // Fetch listening statistics
+        displayListeningStatistics(listeningStats); // Display listening statistics
+        await generateSummary(token, timeRange, listeningStats); // Generate summary with listening stats
+        updateAppState(true); // Update UI to reflect logged-in state
+      } catch (error) {
+        handleError(error); // Handle any errors that occur during the fetch process
+      } finally {
+        hideLoading(); // Hide loading indicator once data is fetched
+      }
+    }
 
 
 	// Function to fetch recently played tracks
@@ -243,52 +271,47 @@ document.addEventListener('DOMContentLoaded', () => {
 	}
 
 
-	// Revised function to generate a user's Spotify summary
-	async function generateSummary(token, timeRange = 'medium_term', listeningStats) {
-	  try {
-		// Fetch user's top track and artist using the Spotify API
-		const topTracks = await fetchData(`https://api.spotify.com/v1/me/top/tracks?limit=1&time_range=${timeRange}`, token);
-		const topArtists = await fetchData(`https://api.spotify.com/v1/me/top/artists?limit=1&time_range=${timeRange}`, token);
+    async function generateSummary(token, timeRange, listeningStats) {
+      try {
+        // Fetch user's top track and artist using the Spotify API
+        const topTracks = await fetchData(`https://api.spotify.com/v1/me/top/tracks?limit=1&time_range=${timeRange}`, token);
+        const topArtists = await fetchData(`https://api.spotify.com/v1/me/top/artists?limit=1&time_range=${timeRange}`, token);
 
-		// Assume additional listening statistics are provided in a suitable format
-		const listeningStatistics = await fetchListeningStatistics(token, timeRange);
+      // Generate summary tiles
+        const topTrackTile = createSummaryTile('Top Track', topTracks.items[0].name, `${topTracks.items[0].popularity} popularity score`);
+        const topArtistTile = createSummaryTile('Top Artist', topArtists.items[0].name, `${topArtists.items[0].popularity} popularity score`);
+        const listeningTimeTile = createSummaryTile('Listening Time', '', `${listeningStats.totalTime} hours`);
 
-		// Generate summary tiles
-		const topTrackTile = createSummaryTile('Top Track', topTracks.items[0].name, `${topTracks.items[0].popularity} popularity score`);
-		const topArtistTile = createSummaryTile('Top Artist', topArtists.items[0].name, `${topArtists.items[0].popularity} popularity score`);
-		const listeningTimeTile = createSummaryTile('Listening Time', '', `${listeningStats.totalTime} hours`);
+        // Clear existing content and add new summary tiles
+        const summaryContent = document.getElementById('summary-content');
+        summaryContent.innerHTML = '';
+        summaryContent.appendChild(topTrackTile);
+        summaryContent.appendChild(topArtistTile);
+        summaryContent.appendChild(listeningTimeTile);
+      } catch (error) {
+        console.error('Error generating summary:', error);
+        displayError('Unable to generate summary.');
+      }
+    }
 
-		// Clear existing content and add new summary tiles
-		const summaryContent = document.getElementById('summary-content');
-		summaryContent.innerHTML = '';
-		summaryContent.appendChild(topTrackTile);
-		summaryContent.appendChild(topArtistTile);
-		summaryContent.appendChild(listeningTimeTile);
-		// ... add more tiles as needed based on the data available
-	  } catch (error) {
-		console.error('Error generating summary:', error);
-		// Handle error appropriately
-	  }
-	}
+    async function fetchListeningStatistics(token, timeRange) {
+      try {
+        // Use an appropriate Spotify API endpoint if one exists, else use the recently played endpoint as an example
+        const response = await fetchData(`https://api.spotify.com/v1/me/player/recently-played?limit=50&time_range=${timeRange}`, token);
+        let totalTimeMs = response.items.reduce((total, item) => total + item.track.duration_ms, 0);
+        let totalTimeHours = (totalTimeMs / (1000 * 60 * 60)).toFixed(2); // Convert milliseconds to hours
 
-	// Function to fetch listening statistics
-	async function fetchListeningStatistics(token) {
-	  try {
-		const recentlyPlayedResponse = await fetchData('https://api.spotify.com/v1/me/player/recently-played?limit=50', token); // Fetch last 50 tracks
-		let totalTimeMs = recentlyPlayedResponse.items.reduce((total, item) => total + item.track.duration_ms, 0);
-		let totalTimeHours = (totalTimeMs / (1000 * 60 * 60)).toFixed(2); // Convert milliseconds to hours
-
-		return {
-		  totalTime: totalTimeHours // Example data in hours
-		};
-	  } catch (error) {
-		console.error('Error fetching listening statistics:', error);
-		return {
-		  totalTime: 0 // Return 0 if there's an error
-		};
-	  }
-	}
-
+        return {
+          totalTime: totalTimeHours
+        };
+      } catch (error) {
+        console.error('Error fetching listening statistics:', error);
+        displayError('Unable to fetch listening statistics.');
+        return {
+          totalTime: 0
+        };
+      }
+    }
 	// Existing function to create summary tiles
 	function createSummaryTile(title, subtitle, detail) {
 	  const tile = document.createElement('div');
@@ -301,29 +324,30 @@ document.addEventListener('DOMContentLoaded', () => {
 	  return tile;
 	}
 	function createShowMoreButton(targetId) {
-		const button = document.createElement('button');
-		button.className = 'btn show-more';
-		button.textContent = 'Show More';
-		button.dataset.target = targetId;
-		button.onclick = () => toggleShowMore(targetId);
-		return button;
+	  const button = document.createElement('button');
+	  button.className = 'btn show-more';
+	  button.textContent = 'Show More';
+	  button.dataset.target = targetId;
+	  button.dataset.state = 'less'; // Set initial state to 'less'
+	  button.addEventListener('click', () => toggleShowMore(targetId, button));
+	  return button;
 	}
 
-	function toggleShowMore(targetId) {
-		const target = document.getElementById(targetId);
-		const showMoreButton = target.nextSibling;
-		const itemsToShow = showMoreButton.dataset.state === 'more' ? target.children.length : 5;
-		toggleVisibleItems(target, itemsToShow);
+	function toggleShowMore(targetId, button) {
+	  const target = document.getElementById(targetId);
+	  const isShowingMore = button.dataset.state === 'more';
+	  toggleVisibleItems(target, isShowingMore ? 5 : target.children.length);
 
-		showMoreButton.dataset.state = showMoreButton.dataset.state === 'more' ? 'less' : 'more';
-		showMoreButton.textContent = showMoreButton.dataset.state === 'more' ? 'Show Less' : 'Show More';
+	  // Update button state and text
+	  button.dataset.state = isShowingMore ? 'less' : 'more';
+	  button.textContent = isShowingMore ? 'Show More' : 'Show Less';
 	}
 
-	// Helper function to show only a limited number of items initially
+
 	function toggleVisibleItems(container, limit) {
-		Array.from(container.children).forEach((child, index) => {
-			child.style.display = index < limit ? 'flex' : 'none';
-		});
+	  Array.from(container.children).forEach((child, index) => {
+		child.style.display = index < limit ? 'block' : 'none'; // Use 'block' or another appropriate display style
+	  });
 	}
 
 	function updateAppState(isLoggedIn) {
