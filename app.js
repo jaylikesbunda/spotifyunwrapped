@@ -160,13 +160,14 @@ document.addEventListener('DOMContentLoaded', () => {
 	}
 
 	function displayUserProfile(profile) {
-	  // Ensure that elements are present in the profile object
-	  const imageUrl = profile.images && profile.images[0] ? profile.images[0].url : 'default-profile.png';
+	  // Use default values if profile data is not present
+	  const imageUrl = profile.images && profile.images.length > 0 ? profile.images[0].url : 'default-profile.png';
 	  const displayName = profile.display_name || 'No display name';
 	  const email = profile.email || 'No email provided';
 	  const country = profile.country || 'No country provided';
 	  const followers = profile.followers ? profile.followers.total : 'No followers count';
 
+	  // Build the profile HTML and set it
 	  const profileHTML = `
 		<div class="user-profile-header">
 		  <img src="${imageUrl}" alt="Profile image" class="user-profile-image">
@@ -184,18 +185,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
 	function displayListeningStatistics(stats) {
 	  const statsContainer = document.getElementById('listening-statistics-section').querySelector('.stats-container');
-	  const content = stats && stats.totalTime ? 
-		`<p>Total Listening Time: ${stats.totalTime} hours</p>` : 
+	  // Build the content string based on stats data
+	  const content = stats.totalTime && stats.favoriteGenre ? 
+		`<p>Total Listening Time: ${stats.totalTime} hours</p><p>Favorite Genre: ${stats.favoriteGenre}</p>` : 
 		'<p>No listening statistics available.</p>';
-
-	  // Display favorite genre if available
-	  if (stats && stats.favoriteGenre) {
-		content += `<p>Favorite Genre: ${stats.favoriteGenre}</p>`;
-	  }
-
 	  statsContainer.innerHTML = content;
 	}
-
 	function createStatsList(data) {
 	  // Check if data is an array and has content
 	  if (!Array.isArray(data) || data.length === 0) {
@@ -280,12 +275,12 @@ document.addEventListener('DOMContentLoaded', () => {
 	}
 
 	function displayError(message) {
-	  const errorContainer = document.getElementById('error-message');
+	  // Create or select the error message container
+	  let errorContainer = document.getElementById('error-message');
 	  if (!errorContainer) {
-		// If no error container exists, create one
-		const newErrorContainer = document.createElement('div');
-		newErrorContainer.id = 'error-message';
-		document.body.prepend(newErrorContainer); // Adjust as needed to place it where you want in your page
+		errorContainer = document.createElement('div');
+		errorContainer.id = 'error-message';
+		document.body.prepend(errorContainer);
 	  }
 	  errorContainer.textContent = message;
 	}
@@ -366,20 +361,20 @@ document.addEventListener('DOMContentLoaded', () => {
 	  return tile;
 	}
 	
-	// Create or update the 'Show More/Less' button
-	function updateShowMoreButton(sectionId, itemCount) {
+	// Function to update or create the 'Show More/Less' button
+	function updateShowMoreButton(sectionId) {
 	  const section = document.getElementById(sectionId);
 	  let button = section.parentNode.querySelector('.show-more');
-	  if (itemCount > 5 && !button) {
+	  if (section.children.length > 5 && !button) {
 		// If there are more than 5 items and no button, create it
 		button = createShowMoreButton(sectionId);
 		section.parentNode.appendChild(button);
-	  } else if (itemCount <= 5 && button) {
+	  } else if (section.children.length <= 5 && button) {
 		// If 5 or fewer items, remove the button
 		button.remove();
 	  }
 	}
-	// Revised Show More/Less logic
+	// Function to create the 'Show More/Less' button
 	function createShowMoreButton(targetId) {
 	  let button = document.querySelector(`#${targetId} .show-more`);
 	  if (!button) {
