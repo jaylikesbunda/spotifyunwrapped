@@ -268,11 +268,15 @@ document.addEventListener('DOMContentLoaded', () => {
 		const timeRangeSelector = document.getElementById('time-range');
 		const logoutButton = document.getElementById('logout-button');
 
-		// Toggle visibility of login/logout sections and time range selector
+		// Toggle visibility of login/logout sections
 		loginSection.classList.toggle('hidden', isLoggedIn);
 		userProfileSection.classList.toggle('hidden', !isLoggedIn);
-		timeRangeSelector.classList.toggle('hidden', !isLoggedIn);
 		logoutButton.classList.toggle('hidden', !isLoggedIn);
+
+		// Check if timeRangeSelector exists before toggling its visibility
+		if (timeRangeSelector) {
+			timeRangeSelector.classList.toggle('hidden', !isLoggedIn);
+		}
 
 		// Manage the visibility of stats and summary sections
 		if (isLoggedIn) {
