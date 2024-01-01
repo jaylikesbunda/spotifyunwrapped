@@ -16,51 +16,63 @@ body {
     background-color: #1DB954;
     color: white;
     border: none;
-    border-radius: 20px;
-    padding: 10px 30px;
-    font-size: 16px;
+    border-radius: 30px;
+    padding: 15px 35px;
+    font-size: 18px;
+    font-weight: bold;
     cursor: pointer;
-    transition: background-color 0.3s, transform 0.2s;
+    transition: background-color 0.3s, transform 0.3s, box-shadow 0.3s;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
 }
 
 .btn:hover {
     background-color: #1ed760;
-    transform: scale(1.05);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.6);
 }
 
 .container {
-    width: 100%;
-    max-width: 800px;
+    width: 90%;
+    max-width: 1200px;
+    margin: 20px;
 }
 
 .stats-block {
     background-color: #282828;
-    border-radius: 10px;
-    padding: 20px;
-    margin-top: 20px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
+    border-radius: 15px;
+    padding: 30px;
+    margin-top: 30px;
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.6);
+    transition: transform 0.3s;
+}
+
+.stats-block:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.7);
 }
 
 .track-item, .artist-item {
     background-color: #1DB954;
     color: white;
-    margin: 10px 0;
-    padding: 15px;
-    border-radius: 10px;
+    margin: 15px 0;
+    padding: 20px;
+    border-radius: 15px;
     display: flex;
     align-items: center;
-    transition: transform 0.3s ease;
+    transition: transform 0.3s ease, box-shadow 0.3s;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
 }
 
 .track-item:hover, .artist-item:hover {
-    transform: scale(1.05);
+    transform: scale(1.02);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
 }
 
 .track-image, .artist-image {
-    width: 50px;
-    height: 50px;
+    width: 60px;
+    height: 60px;
     border-radius: 50%;
-    margin-right: 15px;
+    margin-right: 20px;
 }
 
 .track-info {
@@ -76,4 +88,23 @@ body {
 
 .track-item, .artist-item {
     animation: 0.5s ease-out 0s 1 slideInFromLeft;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .btn {
+        padding: 10px 25px;
+        font-size: 16px;
+    }
+
+    .track-item, .artist-item {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .track-image, .artist-image {
+        margin: 0 0 10px;
+        width: 50px;
+        height: 50px;
+    }
 }
