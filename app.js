@@ -148,60 +148,69 @@ document.addEventListener('DOMContentLoaded', () => {
 	  profileInfo.classList.add('user-info');
 	}
 
-
-	// Updated function to handle the Chart.js display
+	// Function to display listening statistics without Chart.js
 	function displayListeningStatistics(data) {
-		const ctx = document.getElementById('listening-statistics-chart').getContext('2d');
-		const chartContainer = ctx.canvas.parentElement;
-		
-		// Check if data is available and the chart container exists
-		if (data && data.length && chartContainer) {
-			new Chart(ctx, {
-				type: 'bar',
-				data: {
-					labels: data.map(item => item.name),
-					datasets: [{
-						label: 'Listening Statistics',
-						data: data.map(item => item.value),
-						backgroundColor: 'rgba(0, 123, 255, 0.5)',
-						borderColor: 'rgba(0, 123, 255, 1)',
-						borderWidth: 1
-					}]
-				},
-				options: {
-					scales: {
-						y: [{ ticks: { beginAtZero: true } }]
-					}
-				}
+		const statsContainer = document.getElementById('listening-statistics-section');
+		const chartContainer = statsContainer.querySelector('.chart-container');
+
+		// Clear existing content
+		chartContainer.innerHTML = '';
+
+		// Check if data is available
+		if (data && data.length) {
+			const list = document.createElement('ul');
+			list.className = 'listening-stats-list';
+
+			data.forEach(item => {
+				const listItem = document.createElement('li');
+				listItem.className = 'listening-stats-item';
+				listItem.textContent = `${item.name}: ${item.value}`;
+				list.appendChild(listItem);
 			});
-			// Toggle expansion
-			chartContainer.classList.add('expanded');
+
+			chartContainer.appendChild(list);
+			statsContainer.classList.add('expanded'); // Toggle expansion
 		}
 	}
 
 	// Function to display top tracks
 	function displayTopTracks(tracks) {
-		topTracksSection.innerHTML = '<h2>Top Tracks</h2>' + tracks.items.map(track => `
-			<div class="track-item">
-				<img src="${track.album.images[0].url}" alt="${track.name}" class="track-image">
-				<div class="track-info">
-					<h3>${track.name}</h3>
-					<p>${track.artists.map(artist => artist.name).join(', ')}</p>
+		if (!tracks || !tracks.items) {
+			console.error('Invalid track data');
+			return;
+		}
+		const topTracksSection = document.getElementById('top-tracks');
+		topTracksSection.innerHTML = '<h2>Top Tracks</h2>' + tracks.items.map(track => {
+			const image = track.album.images[0] ? track.album.images[0].url : 'default-image.png';
+			return `
+				<div class="track-item">
+					<img src="${image}" alt="${track.name}" class="track-image">
+					<div class="track-info">
+						<h3>${track.name}</h3>
+						<p>${track.artists.map(artist => artist.name).join(', ')}</p>
+					</div>
 				</div>
-			</div>
-		`).join('');
+			`;
+		}).join('');
 	}
 
 	// Function to display top artists
 	function displayTopArtists(artists) {
-		topArtistsSection.innerHTML = '<h2>Top Artists</h2>' + artists.items.map(artist => `
-			<div class="artist-item">
-				<img src="${artist.images[0].url}" alt="${artist.name}" class="artist-image">
-				<h3>${artist.name}</h3>
-			</div>
-		`).join('');
+		if (!artists || !artists.items) {
+			console.error('Invalid artist data');
+			return;
+		}
+		const topArtistsSection = document.getElementById('top-artists');
+		topArtistsSection.innerHTML = '<h2>Top Artists</h2>' + artists.items.map(artist => {
+			const image = artist.images[0] ? artist.images[0].url : 'default-image.png';
+			return `
+				<div class="artist-item">
+					<img src="${image}" alt="${artist.name}" class="artist-image">
+					<h3>${artist.name}</h3>
+				</div>
+			`;
+		}).join('');
 	}
-
 	function logout() {
 		sessionStorage.clear();
 		updateAppState(false); // Update UI to reflect that the user has logged out
@@ -226,50 +235,40 @@ document.addEventListener('DOMContentLoaded', () => {
 		const userProfileSection = document.getElementById('user-profile');
 		const timeRangeSelector = document.getElementById('time-range');
 		const logoutButton = document.getElementById('logout-button');
-		const collapsibleSections = document.querySelectorAll('.collapsible');
 
 		// Toggle visibility of login/logout sections and time range selector
 		loginSection.classList.toggle('hidden', isLoggedIn);
 		userProfileSection.classList.toggle('hidden', !isLoggedIn);
 		timeRangeSelector.classList.toggle('hidden', !isLoggedIn);
 		logoutButton.classList.toggle('hidden', !isLoggedIn);
-		collapsibleSections.forEach(section => section.classList.toggle('hidden', !isLoggedIn));
 
-		if (isLoggedIn) {
-			// Open all collapsible sections if the user is logged in
-			collapsibleSections.forEach(section => {
-				section.open = true;
+		// Manage the visibility of collapsible sections directly
+		document.querySelectorAll('.collapsible').forEach(section => {
+			if (isLoggedIn) {
+				section.classList.remove('hidden');
+				section.open = true; // Explicitly open details elements
 				section.style.maxHeight = section.scrollHeight + 'px';
-			});
-		} else {
-			// Reset collapsible sections upon logout
-			collapsibleSections.forEach(section => {
+			} else {
+				section.classList.add('hidden');
 				section.removeAttribute('open');
 				section.style.maxHeight = null;
-			});
-		}
+			}
+		});
 	}
-
 
 	// Function to initialize collapsible sections
 	function setupCollapsibleSections() {
-		const collapsibles = document.querySelectorAll('.collapsible summary');
-		collapsibles.forEach(collapsible => {
-			collapsible.addEventListener('click', function(event) {
-				const details = this.parentElement;
-				details.classList.toggle('expanded');
-				details.open = !details.open; // Toggle the 'open' state
-				if (details.open) {
-					details.style.maxHeight = details.scrollHeight + 'px';
-				} else {
-					details.style.maxHeight = null;
-				}
+		document.querySelectorAll('.collapsible summary').forEach(summary => {
+			summary.addEventListener('click', event => {
+				const details = summary.parentNode;
+				const isExpanded = details.classList.contains('expanded');
+				details.classList.toggle('expanded', !isExpanded);
+				details.open = !isExpanded; // Toggle the 'open' state
+				details.style.maxHeight = isExpanded ? null : details.scrollHeight + 'px';
 				event.preventDefault(); // Prevent default action to allow for custom behavior
 			});
 		});
 	}
-
-
 
 	function getHashParams() {
 		const hashParams = {};
