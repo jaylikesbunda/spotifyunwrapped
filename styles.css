@@ -1,9 +1,22 @@
+:root {
+    --background-color: #121212;
+    --text-color: #ffffff;
+    --primary-color: #1DB954;
+    --primary-hover-color: #1ed760;
+    --error-color: #e63946;
+    --border-radius: 50px;
+    --font-family: 'Roboto', sans-serif;
+    --base-padding: 20px;
+    --base-margin: 20px;
+    --transition-speed: 0.3s;
+}
+
 body {
-    font-family: 'Roboto', sans-serif;
-    background-color: #121212;
-    color: #ffffff;
+    font-family: var(--font-family);
+    background-color: var(--background-color);
+    color: var(--text-color);
     margin: 0;
-    padding: 20px;
+    padding: var(--base-padding);
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -12,19 +25,19 @@ body {
 }
 
 .btn {
-    background-color: #1DB954;
-    color: white;
+    background-color: var(--primary-color);
+    color: var(--text-color);
     border: none;
-    border-radius: 50px;
+    border-radius: var(--border-radius);
     padding: 10px 20px;
     font-size: 14px;
     cursor: pointer;
-    transition: background-color 0.3s, transform 0.3s, box-shadow 0.3s;
+    transition: background-color var(--transition-speed), transform var(--transition-speed), box-shadow var(--transition-speed);
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
 }
 
 .btn:hover {
-    background-color: #1ed760;
+    background-color: var(--primary-hover-color);
     transform: translateY(-2px);
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.6);
 }
@@ -32,53 +45,48 @@ body {
 .container {
     width: 90%;
     max-width: 1200px;
-    margin: 0 auto;
+    margin: auto;
 }
 
-.track-item, .artist-item {
-    /* Adjust padding and other styles for a smaller size */
+.item {
     padding: 10px;
-    margin: 5px; /* Smaller margins for a tighter grid */
-    flex-direction: column; /* Stack image and text */
+    margin: 5px;
     text-align: center;
+    transition: transform var(--transition-speed), box-shadow var(--transition-speed);
 }
 
-
-.track-item:hover, .artist-item:hover, .listening-stats-item:hover {
+.item:hover {
     transform: scale(1.02);
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
 }
 
-.track-image, .artist-image {
+.image {
     width: 50px;
     height: 50px;
     border-radius: 50%;
     margin-right: 20px;
 }
 
-/* Styles for the list display */
 .listening-stats-list {
     list-style: none;
     padding: 0;
 }
 
 .listening-stats-item {
-    background-color: #1DB954;
+    background-color: var(--primary-color);
     margin: 5px 0;
     padding: 10px;
     border-radius: 10px;
 }
 
-
-
 .time-range-selector {
-    margin: 20px 0;
+    margin: var(--base-margin) 0;
 }
 
 .time-range-select {
     background-color: #282828;
-    border: 1px solid #1DB954;
-    color: white;
+    border: 1px solid var(--primary-color);
+    color: var(--text-color);
     padding: 10px;
     border-radius: 4px;
     font-size: 16px;
@@ -86,15 +94,8 @@ body {
 
 .time-range-select:focus {
     outline: none;
-    border-color: #1ed760;
+    border-color: var(--primary-hover-color);
 }
-
-/* For the label */
-.time-range-selector label {
-    color: #ffffff;
-    margin-right: 10px;
-}
-
 
 .track-info {
     display: flex;
@@ -111,109 +112,58 @@ body {
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    color: #1DB954;
+    color: var(--primary-color);
     font-size: 2rem;
     z-index: 1000;
 }
 
-.limited {
-    max-height: 200px;
-    overflow: hidden;
-}
-
-/* Show More/Less button style */
 .show-more {
     padding: 8px 16px;
     font-size: 12px;
-    align-self: center; /* Center button in the grid */
+    align-self: center;
 }
 
 .grid-layout {
     display: grid;
-    grid-template-columns: repeat(5, 1fr); /* Adjust number of columns as needed */
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
     gap: 10px;
-    margin-bottom: 20px; /* Space for the Show More button */
-}
-
-.summary-section {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-  gap: 1rem;
-  padding: 1rem;
+    margin-bottom: var(--base-margin);
 }
 
 .summary-tile {
-  background-color: #1DB954;
-  border-radius: 10px;
-  padding: 1rem;
-  color: white;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  text-align: center;
+    background-color: var(--primary-color);
+    border-radius: 10px;
+    padding: var(--base-padding);
+    color: var(--text-color);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
 }
 
 .summary-tile h3 {
-  margin: 0;
-  font-size: 1rem;
+    margin: 0;
+    font-size: 1rem;
 }
 
 .summary-tile strong {
-  font-size: 1.2rem;
+    font-size: 1.2rem;
 }
 
 .summary-tile p {
-  font-size: 0.9rem;
+    font-size: 0.9rem;
 }
-
-/* Responsive grid items */
-@media (max-width: 768px) {
-  .summary-section {
-    grid-template-columns: 1fr;
-  }
-}
-}
-
-
-@media (max-width: 768px) {
-    .grid-layout {
-        grid-template-columns: repeat(3, 1fr); /* Adjust for smaller screens */
-    }
-}
-
-@media (max-width: 480px) {
-    .grid-layout {
-        grid-template-columns: repeat(2, 1fr); /* Adjust for very small screens */
-    }
-}
-
-
 
 #logout-button {
     position: fixed;
-    bottom: 20px;
+    bottom: var(--base-padding);
     left: 50%;
     transform: translateX(-50%);
 }
 
 @media (max-width: 768px) {
-    .btn {
-        padding: 10px 25px;
-        font-size: 14px;
-    }
-
-    .track-item, .artist-item {
-        width: 100%; /* Full width on smaller screens */
-    }
-
-    .track-image, .artist-image {
-        margin: 0 0 10px;
-        width: 50px;
-        height: 50px;
-    }
-
-    .time-range-select, #logout-button {
+    .btn, .time-range-select, #logout-button {
         width: 90%;
         left: 5%;
         transform: none;
@@ -221,15 +171,8 @@ body {
 }
 
 @media (max-width: 480px) {
-    .container {
+    .container, .track-info, .item, .image {
+        width: 100%;
         padding: 10px;
-    }
-
-    .track-info, .artist-item, .listening-stats-item {
-        text-align: center;
-    }
-
-    .track-image, .artist-image {
-        margin-bottom: 10px;
     }
 }

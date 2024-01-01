@@ -101,24 +101,25 @@ document.addEventListener('DOMContentLoaded', () => {
 	  });
 	}
 
+	// Revised showLoading function to be more robust
 	function showLoading() {
-		let loader = document.getElementById('loading-indicator');
-		if (!loader) {
-			loader = document.createElement('div');
-			loader.id = 'loading-indicator';
-			loader.textContent = 'Loading...';
-			document.body.appendChild(loader);
-		}
-		loader.style.display = 'block'; // Show the loader
+	  let loader = document.getElementById('loading-indicator');
+	  if (!loader) {
+		loader = document.createElement('div');
+		loader.id = 'loading-indicator';
+		loader.textContent = 'Loading...';
+		document.body.appendChild(loader);
+	  }
+	  loader.style.visibility = 'visible'; // Use visibility to maintain layout
 	}
 
+	// Revised hideLoading function
 	function hideLoading() {
-		const loader = document.getElementById('loading-indicator');
-		if (loader) {
-			loader.style.display = 'none'; // Hide the loader
-		}
+	  const loader = document.getElementById('loading-indicator');
+	  if (loader) {
+		loader.style.visibility = 'hidden'; // Use visibility to maintain layout
+	  }
 	}
-
 
 	async function fetchAllData(token, timeRange = 'medium_term') {
 	  showLoading();
@@ -127,12 +128,16 @@ document.addEventListener('DOMContentLoaded', () => {
 		const topTracks = await fetchData(`https://api.spotify.com/v1/me/top/tracks?time_range=${timeRange}`, token);
 		const topArtists = await fetchData(`https://api.spotify.com/v1/me/top/artists?time_range=${timeRange}`, token);
 		const listeningStats = await fetchListeningStatistics(token, timeRange);
-		displayUserProfile(profile);
-		displayTopTracks(topTracks);
-		displayTopArtists(topArtists);
-		displayListeningStatistics(listeningStats);
-		await generateSummary(token, timeRange, listeningStats);
-		updateAppState(true);
+
+		if (profile && topTracks && topArtists && listeningStats) {
+		  displayUserProfile(profile);
+		  displayTopTracks(topTracks);
+		  displayTopArtists(topArtists);
+		  displayListeningStatistics(listeningStats);
+		  await generateSummary(token, timeRange, listeningStats);
+		} else {
+		  throw new Error('One or more data fetches returned an empty result');
+		}
 	  } catch (error) {
 		handleError(error);
 	  } finally {
@@ -140,64 +145,72 @@ document.addEventListener('DOMContentLoaded', () => {
 	  }
 	}
 
+
 	// Function to fetch recently played tracks
 	async function fetchRecentlyPlayed(token) {
 		return await fetchData('https://api.spotify.com/v1/me/player/recently-played', token);
 	}
 
-	// Function to fetch data from Spotify API
 	async function fetchData(url, token) {
-		const proxyUrl = 'https://cors-anywhere.herokuapp.com/'; // For development purposes
-		const spotifyUrl = proxyUrl + url;
+	  const proxyUrl = 'https://cors-anywhere.herokuapp.com/'; // For development purposes
+	  const spotifyUrl = proxyUrl + url;
+	  try {
 		const response = await fetch(spotifyUrl, {
-			headers: {
-				'Authorization': `Bearer ${token}`,
-				'X-Requested-With': 'XMLHttpRequest'
-			}
+		  headers: {
+			'Authorization': `Bearer ${token}`,
+			'X-Requested-With': 'XMLHttpRequest'
+		  }
 		});
-		if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-		return response.json();
+		if (!response.ok) {
+		  throw new Error(`HTTP error! status: ${response.status}`);
+		}
+		const data = await response.json();
+		if (!data) {
+		  throw new Error('No data returned from the Spotify API');
+		}
+		return data;
+	  } catch (error) {
+		console.error(`Error fetching data from ${url}:`, error);
+		throw error; // Re-throw error to be handled by caller
+	  }
 	}
 
+	// Revised updateShowMoreButton function
 	function updateShowMoreButton(sectionId, itemCount) {
 	  const section = document.getElementById(sectionId);
 	  let button = section.parentNode.querySelector('.show-more');
 	  if (itemCount > 5 && !button) {
-		// If there are more than 5 items and no button, create it
+		// Create the button if there are more than 5 items and no button exists
 		button = createShowMoreButton(sectionId);
 		section.parentNode.appendChild(button);
 	  } else if (itemCount <= 5 && button) {
-		// If 5 or fewer items, remove the button
+		// Remove the button if there are 5 or fewer items
 		button.remove();
 	  }
 	}
 
-	// Function to create the 'Show More/Less' button
+	// Simplified createShowMoreButton function
 	function createShowMoreButton(targetId) {
-	  let button = document.querySelector(`#${targetId} .show-more`);
-	  if (!button) {
-		button = document.createElement('button');
-		button.className = 'btn show-more';
-		button.textContent = 'Show More';
-		button.dataset.target = targetId;
-		button.dataset.state = 'less'; // Initialize the button state to 'less'
-		button.addEventListener('click', function() {
-		  toggleShowMore(targetId, this);
-		});
-	  }
+	  const button = document.createElement('button');
+	  button.className = 'btn show-more';
+	  button.textContent = 'Show More';
+	  button.dataset.target = targetId;
+	  button.dataset.state = 'less'; // Initialize the button state to 'less'
+	  button.addEventListener('click', function() {
+		toggleShowMore(targetId, this);
+	  });
 	  return button;
 	}
 
-
+	// Revised displayUserProfile function
 	function displayUserProfile(profile) {
-	  // Use default values if profile data is not present
 	  const imageUrl = profile.images && profile.images.length > 0 ? profile.images[0].url : 'default-profile.png';
 	  const displayName = profile.display_name || 'No display name';
 	  const email = profile.email || 'No email provided';
 	  const country = profile.country || 'No country provided';
 	  const followers = profile.followers ? profile.followers.total : 'No followers count';
 
-	  // Build the profile HTML and set it
+	  // Building the profile HTML
 	  const profileHTML = `
 		<div class="user-profile-header">
 		  <img src="${imageUrl}" alt="Profile image" class="user-profile-image">
@@ -212,7 +225,7 @@ document.addEventListener('DOMContentLoaded', () => {
 	  profileInfo.innerHTML = profileHTML;
 	  profileInfo.classList.add('user-info');
 	}
-
+	
 	function displayListeningStatistics(stats) {
 	  const statsContainer = document.getElementById('listening-statistics-section').querySelector('.stats-container');
 	  // Build the content string based on stats data
@@ -221,6 +234,7 @@ document.addEventListener('DOMContentLoaded', () => {
 		'<p>No listening statistics available.</p>';
 	  statsContainer.innerHTML = content;
 	}
+	
 	function createStatsList(data) {
 	  // Check if data is an array and has content
 	  if (!Array.isArray(data) || data.length === 0) {
@@ -311,96 +325,73 @@ document.addEventListener('DOMContentLoaded', () => {
 	  errorContainer.textContent = message;
 	}
 
-    async function generateSummary(token, timeRange, listeningStats) {
-      try {
-        // Fetch user's top track and artist using the Spotify API
-        const topTracks = await fetchData(`https://api.spotify.com/v1/me/top/tracks?limit=1&time_range=${timeRange}`, token);
-        const topArtists = await fetchData(`https://api.spotify.com/v1/me/top/artists?limit=1&time_range=${timeRange}`, token);
+	async function generateSummary(token, timeRange, listeningStats) {
+	  try {
+		const topTracks = await fetchData(`https://api.spotify.com/v1/me/top/tracks?limit=1&time_range=${timeRange}`, token);
+		const topArtists = await fetchData(`https://api.spotify.com/v1/me/top/artists?limit=1&time_range=${timeRange}`, token);
+		if (!topTracks.items.length || !topArtists.items.length) {
+		  throw new Error('Top tracks or artists data is empty');
+		}
 
-      // Generate summary tiles
-        const topTrackTile = createSummaryTile('Top Track', topTracks.items[0].name, `${topTracks.items[0].popularity} popularity score`);
-        const topArtistTile = createSummaryTile('Top Artist', topArtists.items[0].name, `${topArtists.items[0].popularity} popularity score`);
-        const listeningTimeTile = createSummaryTile('Listening Time', '', `${listeningStats.totalTime} hours`);
+		const topTrackTile = createSummaryTile('Top Track', topTracks.items[0].name, `${topTracks.items[0].popularity} popularity score`);
+		const topArtistTile = createSummaryTile('Top Artist', topArtists.items[0].name, `${topArtists.items[0].popularity} popularity score`);
+		const listeningTimeTile = createSummaryTile('Listening Time', '', `${listeningStats.totalTime} hours`);
 
-        // Clear existing content and add new summary tiles
-        const summaryContent = document.getElementById('summary-content');
-        summaryContent.innerHTML = '';
-        summaryContent.appendChild(topTrackTile);
-        summaryContent.appendChild(topArtistTile);
-        summaryContent.appendChild(listeningTimeTile);
-      } catch (error) {
-        console.error('Error generating summary:', error);
-        displayError('Unable to generate summary.');
-      }
-    }
+		const summaryContent = document.getElementById('summary-content');
+		summaryContent.innerHTML = '';
+		summaryContent.append(topTrackTile, topArtistTile, listeningTimeTile);
+	  } catch (error) {
+		console.error('Error generating summary:', error);
+		displayError('Unable to generate summary.');
+	  }
+	}
 
 	async function fetchListeningStatistics(token, timeRange) {
 	  try {
-		// Fetch the user's top tracks to infer listening habits
 		const topTracksResponse = await fetchData(`https://api.spotify.com/v1/me/top/tracks?time_range=${timeRange}&limit=50`, token);
-		
-		// Calculate estimated listening time
-		// Assuming each track is listened to fully for the duration listed, though in reality this is an overestimation.
+		if (!topTracksResponse.items.length) {
+		  throw new Error('Top tracks data is empty');
+		}
+
 		let totalTimeMs = topTracksResponse.items.reduce((total, track) => total + track.duration_ms, 0);
-		let totalTimeHours = (totalTimeMs / (3600 * 1000)).toFixed(2); // Convert milliseconds to hours and fix to 2 decimal places
+		let totalTimeHours = (totalTimeMs / (3600 * 1000)).toFixed(2);
 
-		// Determine the most listened genre
-		// Assuming the first genre listed for each artist is their primary genre
-		let genreCounts = {};
-		topTracksResponse.items.forEach(track => {
-		  let genres = track.artists.flatMap(artist => artist.genres);
-		  genres.forEach(genre => {
-			genreCounts[genre] = (genreCounts[genre] || 0) + 1;
-		  });
-		});
+		let genreCounts = topTracksResponse.items.flatMap(track => track.artists.flatMap(artist => artist.genres))
+		  .reduce((acc, genre) => ({ ...acc, [genre]: (acc[genre] || 0) + 1 }), {});
 
-		// Find the genre with the maximum count
 		let favoriteGenre = Object.keys(genreCounts).reduce((a, b) => genreCounts[a] > genreCounts[b] ? a : b, "");
 
-		// Return a statistics object with the calculated values
-		return {
-		  totalTime: totalTimeHours,
-		  favoriteGenre: favoriteGenre
-		};
+		return { totalTime: totalTimeHours, favoriteGenre: favoriteGenre };
 	  } catch (error) {
 		console.error('Error fetching listening statistics:', error);
 		displayError('Unable to fetch listening statistics.');
-		return {
-		  totalTime: 'Unavailable',
-		  favoriteGenre: 'Unavailable'
-		};
+		return { totalTime: 'Unavailable', favoriteGenre: 'Unavailable' };
 	  }
 	}
 
 	function createSummaryTile(title, subtitle, detail) {
-	  // Handle cases where subtitle or detail might be unavailable
 	  subtitle = subtitle || 'Not Available';
 	  detail = detail || 'Not Available';
-	  
+
 	  const tile = document.createElement('div');
 	  tile.className = 'summary-tile';
-	  tile.innerHTML = `
-		<h3>${title}</h3>
-		<strong>${subtitle}</strong>
-		<p>${detail}</p>
-	  `;
+	  tile.innerHTML = `<h3>${title}</h3><strong>${subtitle}</strong><p>${detail}</p>`;
 	  return tile;
 	}
-	
 
+
+	// Revised toggleShowMore function
 	function toggleShowMore(targetId, button) {
 	  const target = document.getElementById(targetId);
 	  const isShowingMore = button.dataset.state === 'more';
 	  const itemsToShow = isShowingMore ? 5 : target.children.length;
 	  toggleVisibleItems(target, itemsToShow);
+
+	  // Update the button's data-state and text
 	  button.dataset.state = isShowingMore ? 'less' : 'more';
-	  button.textContent = isShowingMore ? 'Show More' : 'Show Less';
+	  button.textContent = button.dataset.state === 'more' ? 'Show Less' : 'Show More';
 	}
-	function toggleVisibleItems(container, limit) {
-	  Array.from(container.children).forEach((child, index) => {
-		child.style.display = index < limit ? 'block' : 'none'; // Use 'block' or another appropriate display style
-	  });
-	}
+
 
 	function updateAppState(isLoggedIn) {
 		const loginSection = document.getElementById('login-section');
