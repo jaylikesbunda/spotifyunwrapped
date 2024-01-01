@@ -120,28 +120,25 @@ document.addEventListener('DOMContentLoaded', () => {
 	}
 
 
-   // This function will be invoked after fetching the profile, top tracks, and artists
-    async function fetchAllData(token, timeRange = 'medium_term') {
-      showLoading(); // Show loading indicator
-      try {
-        const profile = await fetchData('https://api.spotify.com/v1/me', token);
-        const topTracks = await fetchData(`https://api.spotify.com/v1/me/top/tracks?time_range=${timeRange}`, token);
-        const topArtists = await fetchData(`https://api.spotify.com/v1/me/top/artists?time_range=${timeRange}`, token);
-      
-        displayUserProfile(profile);
-        displayTopTracks(topTracks);
-        displayTopArtists(topArtists);
-        const listeningStats = await fetchListeningStatistics(token, timeRange); // Fetch listening statistics
-        displayListeningStatistics(listeningStats); // Display listening statistics
-        await generateSummary(token, timeRange, listeningStats); // Generate summary with listening stats
-        updateAppState(true); // Update UI to reflect logged-in state
-      } catch (error) {
-        handleError(error); // Handle any errors that occur during the fetch process
-      } finally {
-        hideLoading(); // Hide loading indicator once data is fetched
-      }
-    }
-
+	async function fetchAllData(token, timeRange = 'medium_term') {
+	  showLoading();
+	  try {
+		const profile = await fetchData('https://api.spotify.com/v1/me', token);
+		const topTracks = await fetchData(`https://api.spotify.com/v1/me/top/tracks?time_range=${timeRange}`, token);
+		const topArtists = await fetchData(`https://api.spotify.com/v1/me/top/artists?time_range=${timeRange}`, token);
+		const listeningStats = await fetchListeningStatistics(token, timeRange);
+		displayUserProfile(profile);
+		displayTopTracks(topTracks);
+		displayTopArtists(topArtists);
+		displayListeningStatistics(listeningStats);
+		await generateSummary(token, timeRange, listeningStats);
+		updateAppState(true);
+	  } catch (error) {
+		handleError(error);
+	  } finally {
+		hideLoading();
+	  }
+	}
 
 	// Function to fetch recently played tracks
 	async function fetchRecentlyPlayed(token) {
@@ -178,14 +175,16 @@ document.addEventListener('DOMContentLoaded', () => {
 	  profileInfo.classList.add('user-info');
 	}
 
-	function displayListeningStatistics(data) {
-		const statsContainer = document.getElementById('listening-statistics-section').querySelector('.stats-container');
-		statsContainer.innerHTML = data && data.length > 0 ? createStatsList(data) : '<p>No listening statistics available.</p>';
-		if (data.length > 5) {
-			const showMoreButton = createShowMoreButton('listening-stats');
-			statsContainer.parentNode.appendChild(showMoreButton);
-		}
+	// This function may be revised to correctly handle the statistics data
+	function displayListeningStatistics(stats) {
+	  const statsContainer = document.getElementById('listening-statistics-section').querySelector('.stats-container');
+	  // Assuming 'stats' is an object with properties 'totalTime' and 'favoriteGenre'
+	  const content = stats.totalTime && stats.favoriteGenre ? 
+		`<p>Total Listening Time: ${stats.totalTime} hours</p><p>Favorite Genre: ${stats.favoriteGenre}</p>` : 
+		'<p>No listening statistics available.</p>';
+	  statsContainer.innerHTML = content;
 	}
+
 
 	function createStatsList(data) {
 		const listHTML = data.map(item => `<li class='listening-stats-item'>${item.name}: ${item.value}</li>`).join('');
@@ -264,12 +263,16 @@ document.addEventListener('DOMContentLoaded', () => {
 		displayError('An error occurred while fetching data. Please try logging in again.');
 	}
 
-	// Function to display error messages
 	function displayError(message) {
-		profileInfo.innerHTML = `<p class="error">${message}</p>`;
-		updateAppState(false);
+	  const errorContainer = document.getElementById('error-message');
+	  if (!errorContainer) {
+		// If no error container exists, create one
+		const newErrorContainer = document.createElement('div');
+		newErrorContainer.id = 'error-message';
+		document.body.prepend(newErrorContainer); // Adjust as needed to place it where you want in your page
+	  }
+	  errorContainer.textContent = message;
 	}
-
 
     async function generateSummary(token, timeRange, listeningStats) {
       try {
@@ -361,6 +364,7 @@ document.addEventListener('DOMContentLoaded', () => {
 	  }
 	}
 
+	// Revised Show More/Less logic
 	function createShowMoreButton(targetId) {
 	  let button = document.querySelector(`#${targetId} .show-more`);
 	  if (!button) {
@@ -369,8 +373,10 @@ document.addEventListener('DOMContentLoaded', () => {
 		button.textContent = 'Show More';
 		button.dataset.target = targetId;
 		button.dataset.state = 'less'; // Initialize the button state to 'less'
+		button.addEventListener('click', function() {
+		  toggleShowMore(targetId, this);
+		});
 	  }
-	  button.onclick = () => toggleShowMore(targetId, button); // Assign the click handler
 	  return button;
 	}
 
@@ -379,12 +385,9 @@ document.addEventListener('DOMContentLoaded', () => {
 	  const isShowingMore = button.dataset.state === 'more';
 	  const itemsToShow = isShowingMore ? 5 : target.children.length;
 	  toggleVisibleItems(target, itemsToShow);
-
-	  // Update the button's data-state and text
 	  button.dataset.state = isShowingMore ? 'less' : 'more';
 	  button.textContent = isShowingMore ? 'Show More' : 'Show Less';
 	}
-
 	function toggleVisibleItems(container, limit) {
 	  Array.from(container.children).forEach((child, index) => {
 		child.style.display = index < limit ? 'block' : 'none'; // Use 'block' or another appropriate display style
