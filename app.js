@@ -1,6 +1,6 @@
 document.addEventListener('DOMContentLoaded', () => {
-    const clientId = '949476dd2ad545b68eedc66ccc7fdf8b'; // Replace with your actual client ID
-    const redirectUri = 'https://jaylikesbunda.github.io/spotifyunwrapped/'; // Replace with your actual redirect URI
+    const clientId = '949476dd2ad545b68eedc66ccc7fdf8b';
+    const redirectUri = window.location.origin + window.location.pathname;
     const authEndpoint = 'https://accounts.spotify.com/authorize';
     const scopes = ['user-read-private', 'user-read-email', 'user-top-read'];
     const state = generateRandomString(16);
@@ -10,46 +10,40 @@ document.addEventListener('DOMContentLoaded', () => {
     const profileInfo = document.getElementById('profile');
     const logoutButton = document.getElementById('logout-button');
 
-    loginButton.addEventListener('click', () => initiateLogin(authEndpoint, clientId, redirectUri, scopes, state));
+    loginButton.addEventListener('click', initiateLogin);
     logoutButton.addEventListener('click', logout);
 
-    checkAuthentication(state);
+    handleRedirect();
 
     function generateRandomString(length) {
         const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-        return Array.from({ length }, () => characters.charAt(Math.floor(Math.random() * characters.length))).join('');
+        return [...Array(length)].map(() => characters.charAt(Math.floor(Math.random() * characters.length))).join('');
     }
 
-    function initiateLogin(endpoint, clientId, redirectUri, scopes, state) {
-        const url = new URL(endpoint);
-        url.search = new URLSearchParams({
-            client_id: clientId,
-            redirect_uri: redirectUri,
-            scope: scopes.join(' '),
-            response_type: 'token',
-            state: state,
-            show_dialog: 'true'
-        }).toString();
-        window.location.href = url.href;
+    function initiateLogin() {
+        const url = `${authEndpoint}?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=${encodeURIComponent(scopes.join(' '))}&response_type=token&state=${state}&show_dialog=true`;
+        window.location.href = url;
     }
 
-    function checkAuthentication(appState) {
+    function handleRedirect() {
         const params = getHashParams();
-        if (params.access_token && params.state === appState) {
+        if (params.access_token && params.state === state) {
+            sessionStorage.setItem('accessToken', params.access_token);
             updateAppState(true);
-            fetchAllData(params.access_token).catch(handleError);
+            fetchAllData(params.access_token);
+        } else if (sessionStorage.getItem('accessToken')) {
+            updateAppState(true);
+            fetchAllData(sessionStorage.getItem('accessToken'));
         }
     }
 
     async function fetchAllData(token) {
-        const profilePromise = fetchUserProfile(token);
-        const topTracksPromise = fetchTopTracks(token);
-        const topArtistsPromise = fetchTopArtists(token);
-
         try {
-            const [profile, topTracks, topArtists] = await Promise.all([profilePromise, topTracksPromise, topArtistsPromise]);
+            const profile = await fetchData('https://api.spotify.com/v1/me', token);
             displayUserProfile(profile);
+            const topTracks = await fetchData('https://api.spotify.com/v1/me/top/tracks', token);
             displayTopTracks(topTracks);
+            const topArtists = await fetchData('https://api.spotify.com/v1/me/top/artists', token);
             displayTopArtists(topArtists);
         } catch (error) {
             handleError(error);
@@ -57,22 +51,11 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     async function fetchData(url, token) {
-        const headers = new Headers({ 'Authorization': `Bearer ${token}` });
-        const response = await fetch(url, { headers });
-        if (!response.ok) throw new Error('Network response was not ok');
-        return response.json();
-    }
-
-    function fetchUserProfile(token) {
-        return fetchData('https://api.spotify.com/v1/me', token);
-    }
-
-    function fetchTopTracks(token) {
-        return fetchData('https://api.spotify.com/v1/me/top/tracks', token);
-    }
-
-    function fetchTopArtists(token) {
-        return fetchData('https://api.spotify.com/v1/me/top/artists', token);
+        const response = await fetch(url, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+        return await response.json();
     }
 
     function displayUserProfile(profile) {
@@ -105,17 +88,20 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function logout() {
-        window.location.hash = '';
-        window.location.reload();
+        sessionStorage.removeItem('accessToken');
+        window.location.href = redirectUri;
     }
 
     function handleError(error) {
-        console.error('Error fetching data:', error);
+        console.error('Error:', error);
         displayError('An error occurred while fetching data. Please try logging in again.');
     }
 
     function displayError(message) {
-        profileInfo.textContent = message; // Use textContent for plain text
+        const errorContainer = document.createElement('p');
+        errorContainer.textContent = message;
+        errorContainer.classList.add('error');
+        profileInfo.appendChild(errorContainer);
         updateAppState(false);
     }
 
