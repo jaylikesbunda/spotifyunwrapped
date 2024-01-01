@@ -193,23 +193,23 @@ document.addEventListener('DOMContentLoaded', () => {
 	}
 
 	function displayTopTracks(tracks) {
-		if (!tracks || !tracks.items) {
-			console.error('Invalid track data');
-			return;
-		}
-		const topTracksSection = document.getElementById('top-tracks');
-		topTracksSection.classList.add('grid-layout'); // Add grid layout class
-		topTracksSection.innerHTML = tracks.items.map(track => createTrackItem(track)).join('');
+	  if (!tracks || !tracks.items) {
+		console.error('Invalid track data');
+		return;
+	  }
+	  const topTracksSection = document.getElementById('top-tracks');
+	  topTracksSection.classList.add('grid-layout'); // Ensure this class exists in your CSS
+	  topTracksSection.innerHTML = tracks.items.map(track => createTrackItem(track)).join('');
 
-		// Slice the array to only show the first 5 items initially
-		toggleVisibleItems(topTracksSection, 5);
+	  // Check if a 'Show More' button already exists, update or create one as necessary
+	  let showMoreButton = topTracksSection.parentNode.querySelector('.show-more');
+	  if (!showMoreButton) {
+		showMoreButton = createShowMoreButton('top-tracks');
+		topTracksSection.parentNode.appendChild(showMoreButton);
+	  }
 
-		// Add 'Show More' button if there are more tracks
-		if (tracks.items.length > 5) {
-			const showMoreButton = updateShowMoreButton('top-tracks');
-			topTracksSection.parentNode.appendChild(showMoreButton);
-		}
-	}
+	  // Initially display only the first 5 items
+	  toggleVisibleItems(topTracksSection, 5);
 
 	function createTrackItem(track) {
 		const image = track.album.images[0] ? track.album.images[0].url : 'default-image.png';
@@ -347,44 +347,43 @@ document.addEventListener('DOMContentLoaded', () => {
 	  return tile;
 	}
 	
-    // Revised function to create or update the 'Show More/Less' button
-    function updateShowMoreButton(sectionId) {
-      let button = document.querySelector(`#${sectionId} .show-more`);
-      if (!button) {
-        button = document.createElement('button');
-        button.className = 'btn show-more';
-        button.textContent = 'Show More';
-        button.onclick = () => toggleShowMore(sectionId);
-        document.getElementById(sectionId).parentNode.appendChild(button);
-      }
-      button.dataset.state = button.dataset.state === 'more' ? 'less' : 'more';
-      button.textContent = button.dataset.state === 'more' ? 'Show Less' : 'Show More';
-    }
+	// Ensure the 'Show More' button is appropriately updated or removed
+	function updateShowMoreButton(sectionId) {
+	  const section = document.getElementById(sectionId);
+	  let button = section.parentNode.querySelector('.show-more');
+	  if (section.children.length <= 5 && button) {
+		// If there are 5 or fewer items, the button should be removed
+		button.remove();
+	  } else if (!button) {
+		// If there are more than 5 items and no button, one should be created
+		button = createShowMoreButton(sectionId);
+		section.parentNode.appendChild(button);
+	  }
+	}
 
 	function createShowMoreButton(targetId) {
-	  const button = document.createElement('button');
-	  button.className = 'btn show-more';
-	  button.textContent = 'Show More';
-	  button.dataset.target = targetId;
-	  button.dataset.state = 'less'; // Set initial state to 'less'
-	  button.addEventListener('click', () => toggleShowMore(targetId, button));
+	  let button = document.querySelector(`#${targetId} .show-more`);
+	  if (!button) {
+		button = document.createElement('button');
+		button.className = 'btn show-more';
+		button.textContent = 'Show More';
+		button.dataset.target = targetId;
+		button.dataset.state = 'less'; // Initialize the button state to 'less'
+	  }
+	  button.onclick = () => toggleShowMore(targetId, button); // Assign the click handler
 	  return button;
 	}
 
-    // Simplified toggleShowMore function
-    function toggleShowMore(sectionId) {
-      const target = document.getElementById(sectionId);
-      const children = Array.from(target.children);
-      const isShowingMore = target.classList.contains('show-all');
+	function toggleShowMore(targetId, button) {
+	  const target = document.getElementById(targetId);
+	  const isShowingMore = button.dataset.state === 'more';
+	  const itemsToShow = isShowingMore ? 5 : target.children.length;
+	  toggleVisibleItems(target, itemsToShow);
 
-      children.forEach((child, index) => {
-        child.style.display = isShowingMore && index >= 5 ? 'none' : 'block';
-      });
-
-      target.classList.toggle('show-all', !isShowingMore);
-      updateShowMoreButton(sectionId);
-    }
-
+	  // Update the button's data-state and text
+	  button.dataset.state = isShowingMore ? 'less' : 'more';
+	  button.textContent = isShowingMore ? 'Show More' : 'Show Less';
+	}
 
 	function toggleVisibleItems(container, limit) {
 	  Array.from(container.children).forEach((child, index) => {
