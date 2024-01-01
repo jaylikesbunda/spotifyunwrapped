@@ -205,3 +205,4 @@ document.addEventListener('DOMContentLoaded', () => {
 		history.replaceState(null, null, ' ');
 		return hashParams;
 	}
+}); 
