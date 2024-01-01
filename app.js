@@ -224,20 +224,16 @@ document.addEventListener('DOMContentLoaded', () => {
 		const userProfileSection = document.getElementById('user-profile');
 		const statsSection = document.getElementById('stats-section');
 		const timeRangeSelector = document.getElementById('time-range');
+		const logoutButton = document.getElementById('logout-button');
 
-		if (isLoggedIn) {
-			loginSection.classList.add('hidden');
-			userProfileSection.classList.remove('hidden');
-			statsSection.classList.remove('hidden');
-			timeRangeSelector.classList.remove('hidden');
-		} else {
-			loginSection.classList.remove('hidden');
-			userProfileSection.classList.add('hidden');
-			statsSection.classList.add('hidden');
-			timeRangeSelector.classList.add('hidden');
-		}
+		loginSection.classList.toggle('hidden', isLoggedIn);
+		userProfileSection.classList.toggle('hidden', !isLoggedIn);
+		statsSection.classList.toggle('hidden', !isLoggedIn);
+		timeRangeSelector.classList.toggle('hidden', !isLoggedIn);
+		logoutButton.classList.toggle('hidden', !isLoggedIn);
+		// Call show/hide functions for other elements if needed
 	}
-	
+
 	function getHashParams() {
 		const hashParams = {};
 		const regex = /([^&;=]+)=?([^&;]*)/g;
