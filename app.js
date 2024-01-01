@@ -48,17 +48,21 @@ document.addEventListener('DOMContentLoaded', () => {
         window.location.href = url;
     }
 
-    // Handling redirection after authentication
-    function handleRedirect() {
-        const params = getHashParams();
-        if (params.access_token && params.state === sessionStorage.getItem('state')) {
-            sessionStorage.setItem('accessToken', params.access_token);
-            fetchAllData(params.access_token);
-        } else if (sessionStorage.getItem('accessToken')) {
-            fetchAllData(sessionStorage.getItem('accessToken'));
-        }
-    }
-
+	// Handling redirection after authentication
+	function handleRedirect() {
+		const params = getHashParams();
+		const state = sessionStorage.getItem('state');
+		const accessToken = sessionStorage.getItem('accessToken');
+		
+		if (params.access_token && params.state === state) {
+			sessionStorage.setItem('accessToken', params.access_token);
+			updateAppState(true); // Update UI to logged-in state
+			fetchAllData(params.access_token); // Fetch data with the new token
+		} else if (accessToken) {
+			updateAppState(true); // Already logged in
+			fetchAllData(accessToken); // Fetch data with the existing token
+		}
+	}
 
 
 	function handleTimeRangeChange(event) {
@@ -70,30 +74,22 @@ document.addEventListener('DOMContentLoaded', () => {
 	}
 
 	function showLoading() {
-		// Create a loading indicator element if it doesn't exist
 		let loader = document.getElementById('loading-indicator');
 		if (!loader) {
 			loader = document.createElement('div');
 			loader.id = 'loading-indicator';
 			loader.textContent = 'Loading...';
-			loader.style.position = 'fixed';
-			loader.style.top = '50%';
-			loader.style.left = '50%';
-			loader.style.transform = 'translate(-50%, -50%)';
-			loader.style.color = 'white';
-			loader.style.fontSize = '1.5em';
 			document.body.appendChild(loader);
 		}
+		loader.style.display = 'block'; // Show the loader
 	}
 
 	function hideLoading() {
-		// Remove the loading indicator element if it exists
 		const loader = document.getElementById('loading-indicator');
 		if (loader) {
-			loader.remove();
+			loader.style.display = 'none'; // Hide the loader
 		}
 	}
-
 
 
 	// Modify fetchAllData to accept timeRange as a parameter
@@ -205,10 +201,10 @@ document.addEventListener('DOMContentLoaded', () => {
 		`).join('');
 	}
 
-	// Function to handle logout
 	function logout() {
 		sessionStorage.clear();
-		window.location.assign(redirectUri);
+		updateAppState(false); // Update UI to reflect that the user has logged out
+		window.location.assign(redirectUri); // Redirect to the home page
 	}
 
 	// Function to handle errors
@@ -224,21 +220,24 @@ document.addEventListener('DOMContentLoaded', () => {
 	}
 
 	function updateAppState(isLoggedIn) {
-		loginButton.style.display = isLoggedIn ? 'none' : 'block';
-		userProfile.style.display = isLoggedIn ? 'block' : 'none';
-		// You may also want to add checks to ensure these elements are not null
+		const loginSection = document.getElementById('login-section');
+		const userProfileSection = document.getElementById('user-profile');
+		const statsSection = document.getElementById('stats-section');
+		const timeRangeSelector = document.getElementById('time-range');
+
 		if (isLoggedIn) {
-			timeRangeDropdown.classList.remove('hidden');
-			topTracksSection.classList.remove('hidden');
-			topArtistsSection.classList.remove('hidden');
+			loginSection.classList.add('hidden');
+			userProfileSection.classList.remove('hidden');
+			statsSection.classList.remove('hidden');
+			timeRangeSelector.classList.remove('hidden');
 		} else {
-			timeRangeDropdown.classList.add('hidden');
-			topTracksSection.classList.add('hidden');
-			topArtistsSection.classList.add('hidden');
-			topTracksSection.innerHTML = '';
-			topArtistsSection.innerHTML = '';
+			loginSection.classList.remove('hidden');
+			userProfileSection.classList.add('hidden');
+			statsSection.classList.add('hidden');
+			timeRangeSelector.classList.add('hidden');
 		}
 	}
+	
 	function getHashParams() {
 		const hashParams = {};
 		const regex = /([^&;=]+)=?([^&;]*)/g;

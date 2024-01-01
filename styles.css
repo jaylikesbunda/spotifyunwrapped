@@ -3,10 +3,9 @@ body {
     background-color: #121212;
     color: #ffffff;
     margin: 0;
-    padding: 20px;
+    padding: 0;
     display: flex;
     flex-direction: column;
-    justify-content: center;
     align-items: center;
     min-height: 100vh;
     text-align: center;
@@ -16,95 +15,116 @@ body {
     background-color: #1DB954;
     color: white;
     border: none;
-    border-radius: 30px;
-    padding: 15px 35px;
-    font-size: 18px;
-    font-weight: bold;
+    border-radius: 20px;
+    padding: 10px 20px;
+    font-size: 1rem;
     cursor: pointer;
-    transition: background-color 0.3s, transform 0.3s, box-shadow 0.3s;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+    transition: background-color 0.3s, box-shadow 0.3s;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
 }
 
 .btn:hover {
     background-color: #1ed760;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.6);
+    box-shadow: 0 6px 8px rgba(0, 0, 0, 0.3);
 }
 
 .container {
-    width: 90%;
-    max-width: 1200px;
-    margin: 20px;
+    width: 100%;
+    max-width: 800px;
+    margin: 1em auto;
 }
 
-.stats-block {
+.main-header, .login-section, .user-profile {
+    width: 100%;
+    margin-bottom: 1em;
+}
+
+.stats-block, .top-tracks, .top-artists {
     background-color: #282828;
-    border-radius: 15px;
-    padding: 30px;
-    margin-top: 30px;
-    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.6);
-    transition: transform 0.3s;
-}
-
-.stats-block:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.7);
+    border-radius: 8px;
+    margin: 0.5em;
+    padding: 1em;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
 }
 
 .track-item, .artist-item {
     background-color: #1DB954;
-    color: white;
-    margin: 15px 0;
-    padding: 20px;
-    border-radius: 15px;
+    border-radius: 8px;
+    margin: 0.5em 0;
+    padding: 0.5em 1em;
     display: flex;
     align-items: center;
-    transition: transform 0.3s ease, box-shadow 0.3s;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
+    transition: transform 0.3s ease;
 }
 
 .track-item:hover, .artist-item:hover {
-    transform: scale(1.02);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
+    transform: translateY(-3px);
 }
 
 .track-image, .artist-image {
-    width: 60px;
-    height: 60px;
+    width: 40px;
+    height: 40px;
     border-radius: 50%;
-    margin-right: 20px;
+    margin-right: 1em;
 }
 
-.track-info {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
+.track-info, .artist-info {
+    flex: 1;
 }
 
-@keyframes slideInFromLeft {
-    0% { transform: translateX(-100%); opacity: 0; }
-    100% { transform: translateX(0); opacity: 1; }
+.time-range-select {
+    margin: 1em 0;
+}
+/* Add this to your styles.css */
+#loading-indicator {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: white;
+    font-size: 1.5em;
+    display: none; /* Hidden by default */
 }
 
-.track-item, .artist-item {
-    animation: 0.5s ease-out 0s 1 slideInFromLeft;
+#logout-button {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
 }
 
-/* Responsive Design */
 @media (max-width: 768px) {
     .btn {
-        padding: 10px 25px;
-        font-size: 16px;
+        padding: 8px 16px;
+        font-size: 0.9rem;
     }
-
+    
     .track-item, .artist-item {
-        flex-direction: column;
-        align-items: center;
+        padding: 0.5em;
     }
-
+    
     .track-image, .artist-image {
-        margin: 0 0 10px;
-        width: 50px;
-        height: 50px;
+        width: 30px;
+        height: 30px;
+    }
+    
+    #logout-button {
+        width: calc(100% - 40px);
+        left: 20px;
+        transform: none;
+    }
+}
+
+@media (max-width: 480px) {
+    .container {
+        margin: 1em;
+    }
+    
+    .track-info, .artist-info {
+        text-align: left;
+    }
+    
+    .stats-block, .top-tracks, .top-artists {
+        padding: 0.5em;
     }
 }
