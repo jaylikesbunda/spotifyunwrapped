@@ -206,7 +206,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 		// Add 'Show More' button if there are more tracks
 		if (tracks.items.length > 5) {
-			const showMoreButton = createShowMoreButton('top-tracks');
+			const showMoreButton = updateShowMoreButton('top-tracks');
 			topTracksSection.parentNode.appendChild(showMoreButton);
 		}
 	}
@@ -238,7 +238,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 		// Add 'Show More' button if there are more artists
 		if (artists.items.length > 5) {
-			const showMoreButton = createShowMoreButton('top-artists');
+			const showMoreButton = updateShowMoreButton('top-artists');
 			topArtistsSection.parentNode.appendChild(showMoreButton);
 		}
 	}
@@ -294,26 +294,49 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     }
 
-    async function fetchListeningStatistics(token, timeRange) {
-      try {
-        // Use an appropriate Spotify API endpoint if one exists, else use the recently played endpoint as an example
-        const response = await fetchData(`https://api.spotify.com/v1/me/player/recently-played?limit=50&time_range=${timeRange}`, token);
-        let totalTimeMs = response.items.reduce((total, item) => total + item.track.duration_ms, 0);
-        let totalTimeHours = (totalTimeMs / (1000 * 60 * 60)).toFixed(2); // Convert milliseconds to hours
+	async function fetchListeningStatistics(token, timeRange) {
+	  try {
+		// Fetch the user's top tracks to infer listening habits
+		const topTracksResponse = await fetchData(`https://api.spotify.com/v1/me/top/tracks?time_range=${timeRange}&limit=50`, token);
+		
+		// Calculate estimated listening time
+		// Assuming each track is listened to fully for the duration listed, though in reality this is an overestimation.
+		let totalTimeMs = topTracksResponse.items.reduce((total, track) => total + track.duration_ms, 0);
+		let totalTimeHours = (totalTimeMs / (3600 * 1000)).toFixed(2); // Convert milliseconds to hours and fix to 2 decimal places
 
-        return {
-          totalTime: totalTimeHours
-        };
-      } catch (error) {
-        console.error('Error fetching listening statistics:', error);
-        displayError('Unable to fetch listening statistics.');
-        return {
-          totalTime: 0
-        };
-      }
-    }
-	// Existing function to create summary tiles
+		// Determine the most listened genre
+		// Assuming the first genre listed for each artist is their primary genre
+		let genreCounts = {};
+		topTracksResponse.items.forEach(track => {
+		  let genres = track.artists.flatMap(artist => artist.genres);
+		  genres.forEach(genre => {
+			genreCounts[genre] = (genreCounts[genre] || 0) + 1;
+		  });
+		});
+
+		// Find the genre with the maximum count
+		let favoriteGenre = Object.keys(genreCounts).reduce((a, b) => genreCounts[a] > genreCounts[b] ? a : b, "");
+
+		// Return a statistics object with the calculated values
+		return {
+		  totalTime: totalTimeHours,
+		  favoriteGenre: favoriteGenre
+		};
+	  } catch (error) {
+		console.error('Error fetching listening statistics:', error);
+		displayError('Unable to fetch listening statistics.');
+		return {
+		  totalTime: 'Unavailable',
+		  favoriteGenre: 'Unavailable'
+		};
+	  }
+	}
+
 	function createSummaryTile(title, subtitle, detail) {
+	  // Handle cases where subtitle or detail might be unavailable
+	  subtitle = subtitle || 'Not Available';
+	  detail = detail || 'Not Available';
+	  
 	  const tile = document.createElement('div');
 	  tile.className = 'summary-tile';
 	  tile.innerHTML = `
@@ -323,6 +346,21 @@ document.addEventListener('DOMContentLoaded', () => {
 	  `;
 	  return tile;
 	}
+	
+    // Revised function to create or update the 'Show More/Less' button
+    function updateShowMoreButton(sectionId) {
+      let button = document.querySelector(`#${sectionId} .show-more`);
+      if (!button) {
+        button = document.createElement('button');
+        button.className = 'btn show-more';
+        button.textContent = 'Show More';
+        button.onclick = () => toggleShowMore(sectionId);
+        document.getElementById(sectionId).parentNode.appendChild(button);
+      }
+      button.dataset.state = button.dataset.state === 'more' ? 'less' : 'more';
+      button.textContent = button.dataset.state === 'more' ? 'Show Less' : 'Show More';
+    }
+
 	function createShowMoreButton(targetId) {
 	  const button = document.createElement('button');
 	  button.className = 'btn show-more';
@@ -333,15 +371,19 @@ document.addEventListener('DOMContentLoaded', () => {
 	  return button;
 	}
 
-	function toggleShowMore(targetId, button) {
-	  const target = document.getElementById(targetId);
-	  const isShowingMore = button.dataset.state === 'more';
-	  toggleVisibleItems(target, isShowingMore ? 5 : target.children.length);
+    // Simplified toggleShowMore function
+    function toggleShowMore(sectionId) {
+      const target = document.getElementById(sectionId);
+      const children = Array.from(target.children);
+      const isShowingMore = target.classList.contains('show-all');
 
-	  // Update button state and text
-	  button.dataset.state = isShowingMore ? 'less' : 'more';
-	  button.textContent = isShowingMore ? 'Show More' : 'Show Less';
-	}
+      children.forEach((child, index) => {
+        child.style.display = isShowingMore && index >= 5 ? 'none' : 'block';
+      });
+
+      target.classList.toggle('show-all', !isShowingMore);
+      updateShowMoreButton(sectionId);
+    }
 
 
 	function toggleVisibleItems(container, limit) {
@@ -357,7 +399,8 @@ document.addEventListener('DOMContentLoaded', () => {
 		const summarySection = document.getElementById('summary-section');
 		const timeRangeSelector = document.getElementById('time-range');
 		const logoutButton = document.getElementById('logout-button');
-
+		const showMoreButtons = document.querySelectorAll('.show-more');
+		showMoreButtons.forEach(button => button.remove());
 		// Toggle visibility of login/logout sections
 		loginSection.classList.toggle('hidden', isLoggedIn);
 		userProfileSection.classList.toggle('hidden', !isLoggedIn);
