@@ -151,25 +151,6 @@ document.addEventListener('DOMContentLoaded', () => {
     profileInfo.classList.add('user-info');
 }
 
-	// Assuming the 'recently-played' section is defined in your HTML
-	function displayRecentlyPlayed(recentlyPlayed) {
-		const recentlyPlayedSection = document.getElementById('recently-played');
-		if (recentlyPlayedSection) {
-			recentlyPlayedSection.innerHTML = recentlyPlayed.items.map(item => `
-				<div class="track-item">
-					<img src="${item.track.album.images[0].url}" alt="${item.track.name}" class="track-image">
-					<div class="track-info">
-						<h3>${item.track.name}</h3>
-						<p>${item.track.artists.map(artist => artist.name).join(', ')}</p>
-					</div>
-				</div>
-			`).join('');
-			// Toggle expansion if needed
-			recentlyPlayedSection.classList.toggle('expanded', recentlyPlayed.items.length > 0);
-		}
-	}
-	
-	
 		// Function to toggle the expansion of a stats block
 	function toggleStatsBlockExpansion(blockId) {
 		const block = document.getElementById(blockId);
