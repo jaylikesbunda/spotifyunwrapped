@@ -159,6 +159,36 @@ document.addEventListener('DOMContentLoaded', () => {
 		return response.json();
 	}
 
+	function updateShowMoreButton(sectionId, itemCount) {
+	  const section = document.getElementById(sectionId);
+	  let button = section.parentNode.querySelector('.show-more');
+	  if (itemCount > 5 && !button) {
+		// If there are more than 5 items and no button, create it
+		button = createShowMoreButton(sectionId);
+		section.parentNode.appendChild(button);
+	  } else if (itemCount <= 5 && button) {
+		// If 5 or fewer items, remove the button
+		button.remove();
+	  }
+	}
+
+	// Function to create the 'Show More/Less' button
+	function createShowMoreButton(targetId) {
+	  let button = document.querySelector(`#${targetId} .show-more`);
+	  if (!button) {
+		button = document.createElement('button');
+		button.className = 'btn show-more';
+		button.textContent = 'Show More';
+		button.dataset.target = targetId;
+		button.dataset.state = 'less'; // Initialize the button state to 'less'
+		button.addEventListener('click', function() {
+		  toggleShowMore(targetId, this);
+		});
+	  }
+	  return button;
+	}
+
+
 	function displayUserProfile(profile) {
 	  // Use default values if profile data is not present
 	  const imageUrl = profile.images && profile.images.length > 0 ? profile.images[0].url : 'default-profile.png';
@@ -202,18 +232,14 @@ document.addEventListener('DOMContentLoaded', () => {
 	}
 
 	function displayTopTracks(tracks) {
+	  const topTracksSection = document.getElementById('top-tracks');
 	  if (!tracks || !tracks.items || tracks.items.length === 0) {
 		console.error('Invalid or empty track data');
+		topTracksSection.innerHTML = '<p>No top tracks data available.</p>';
 		return;
 	  }
 
-	  const topTracksSection = document.getElementById('top-tracks');
 	  topTracksSection.classList.add('grid-layout');
-
-	  // Clear previous items and show more button
-	  topTracksSection.innerHTML = '';
-	  removeShowMoreButton('top-tracks');
-
 	  const trackItemsHtml = tracks.items.map(track => createTrackItem(track)).join('');
 	  topTracksSection.innerHTML = trackItemsHtml;
 
@@ -361,34 +387,6 @@ document.addEventListener('DOMContentLoaded', () => {
 	  return tile;
 	}
 	
-	// Function to update or create the 'Show More/Less' button
-	function updateShowMoreButton(sectionId) {
-	  const section = document.getElementById(sectionId);
-	  let button = section.parentNode.querySelector('.show-more');
-	  if (section.children.length > 5 && !button) {
-		// If there are more than 5 items and no button, create it
-		button = createShowMoreButton(sectionId);
-		section.parentNode.appendChild(button);
-	  } else if (section.children.length <= 5 && button) {
-		// If 5 or fewer items, remove the button
-		button.remove();
-	  }
-	}
-	// Function to create the 'Show More/Less' button
-	function createShowMoreButton(targetId) {
-	  let button = document.querySelector(`#${targetId} .show-more`);
-	  if (!button) {
-		button = document.createElement('button');
-		button.className = 'btn show-more';
-		button.textContent = 'Show More';
-		button.dataset.target = targetId;
-		button.dataset.state = 'less'; // Initialize the button state to 'less'
-		button.addEventListener('click', function() {
-		  toggleShowMore(targetId, this);
-		});
-	  }
-	  return button;
-	}
 
 	function toggleShowMore(targetId, button) {
 	  const target = document.getElementById(targetId);
