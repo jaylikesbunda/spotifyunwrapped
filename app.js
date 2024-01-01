@@ -160,56 +160,72 @@ document.addEventListener('DOMContentLoaded', () => {
 	}
 
 	function displayUserProfile(profile) {
+	  // Ensure that elements are present in the profile object
+	  const imageUrl = profile.images && profile.images[0] ? profile.images[0].url : 'default-profile.png';
+	  const displayName = profile.display_name || 'No display name';
+	  const email = profile.email || 'No email provided';
+	  const country = profile.country || 'No country provided';
+	  const followers = profile.followers ? profile.followers.total : 'No followers count';
+
 	  const profileHTML = `
 		<div class="user-profile-header">
-		  <img src="${profile.images[0].url}" alt="Profile image" class="user-profile-image">
-		  <div class="user-profile-name">${profile.display_name}</div>
+		  <img src="${imageUrl}" alt="Profile image" class="user-profile-image">
+		  <div class="user-profile-name">${displayName}</div>
 		</div>
 		<div class="user-profile-details">
-		  <div class="user-profile-email">Email: ${profile.email}</div>
-		  <div class="user-profile-country">Country: ${profile.country}</div>
-		  <div class="user-profile-followers">Followers: ${profile.followers.total}</div>
+		  <div class="user-profile-email">Email: ${email}</div>
+		  <div class="user-profile-country">Country: ${country}</div>
+		  <div class="user-profile-followers">Followers: ${followers}</div>
 		</div>
 	  `;
 	  profileInfo.innerHTML = profileHTML;
 	  profileInfo.classList.add('user-info');
 	}
 
-	// This function may be revised to correctly handle the statistics data
 	function displayListeningStatistics(stats) {
 	  const statsContainer = document.getElementById('listening-statistics-section').querySelector('.stats-container');
-	  // Assuming 'stats' is an object with properties 'totalTime' and 'favoriteGenre'
-	  const content = stats.totalTime && stats.favoriteGenre ? 
-		`<p>Total Listening Time: ${stats.totalTime} hours</p><p>Favorite Genre: ${stats.favoriteGenre}</p>` : 
+	  const content = stats && stats.totalTime ? 
+		`<p>Total Listening Time: ${stats.totalTime} hours</p>` : 
 		'<p>No listening statistics available.</p>';
+
+	  // Display favorite genre if available
+	  if (stats && stats.favoriteGenre) {
+		content += `<p>Favorite Genre: ${stats.favoriteGenre}</p>`;
+	  }
+
 	  statsContainer.innerHTML = content;
 	}
 
-
 	function createStatsList(data) {
-		const listHTML = data.map(item => `<li class='listening-stats-item'>${item.name}: ${item.value}</li>`).join('');
-		return `<ul class='listening-stats-list'>${listHTML}</ul>`;
+	  // Check if data is an array and has content
+	  if (!Array.isArray(data) || data.length === 0) {
+		return '<p>No statistics data available.</p>';
+	  }
+
+	  const listHTML = data.map(item => `<li class='listening-stats-item'>${item.name}: ${item.value}</li>`).join('');
+	  return `<ul class='listening-stats-list'>${listHTML}</ul>`;
 	}
 
 	function displayTopTracks(tracks) {
-	  if (!tracks || !tracks.items) {
-		console.error('Invalid track data');
+	  if (!tracks || !tracks.items || tracks.items.length === 0) {
+		console.error('Invalid or empty track data');
 		return;
 	  }
+
 	  const topTracksSection = document.getElementById('top-tracks');
-	  topTracksSection.classList.add('grid-layout'); // Ensure this class exists in your CSS
-	  topTracksSection.innerHTML = tracks.items.map(track => createTrackItem(track)).join('');
+	  topTracksSection.classList.add('grid-layout');
 
-	  // Check if a 'Show More' button already exists, update or create one as necessary
-	  let showMoreButton = topTracksSection.parentNode.querySelector('.show-more');
-	  if (!showMoreButton) {
-		showMoreButton = createShowMoreButton('top-tracks');
-		topTracksSection.parentNode.appendChild(showMoreButton);
-	  }
+	  // Clear previous items and show more button
+	  topTracksSection.innerHTML = '';
+	  removeShowMoreButton('top-tracks');
 
-	  // Initially display only the first 5 items
+	  const trackItemsHtml = tracks.items.map(track => createTrackItem(track)).join('');
+	  topTracksSection.innerHTML = trackItemsHtml;
+
+	  // Add or update the 'Show More' button based on the number of tracks
+	  updateShowMoreButton('top-tracks', tracks.items.length);
 	  toggleVisibleItems(topTracksSection, 5);
-
+	}
 	function createTrackItem(track) {
 		const image = track.album.images[0] ? track.album.images[0].url : 'default-image.png';
 		return `
@@ -350,20 +366,19 @@ document.addEventListener('DOMContentLoaded', () => {
 	  return tile;
 	}
 	
-	// Ensure the 'Show More' button is appropriately updated or removed
-	function updateShowMoreButton(sectionId) {
+	// Create or update the 'Show More/Less' button
+	function updateShowMoreButton(sectionId, itemCount) {
 	  const section = document.getElementById(sectionId);
 	  let button = section.parentNode.querySelector('.show-more');
-	  if (section.children.length <= 5 && button) {
-		// If there are 5 or fewer items, the button should be removed
-		button.remove();
-	  } else if (!button) {
-		// If there are more than 5 items and no button, one should be created
+	  if (itemCount > 5 && !button) {
+		// If there are more than 5 items and no button, create it
 		button = createShowMoreButton(sectionId);
 		section.parentNode.appendChild(button);
+	  } else if (itemCount <= 5 && button) {
+		// If 5 or fewer items, remove the button
+		button.remove();
 	  }
 	}
-
 	// Revised Show More/Less logic
 	function createShowMoreButton(targetId) {
 	  let button = document.querySelector(`#${targetId} .show-more`);
