@@ -10,41 +10,50 @@ document.addEventListener('DOMContentLoaded', () => {
     const profileInfo = document.getElementById('profile');
     const logoutButton = document.getElementById('logout-button');
 
-    loginButton.addEventListener('click', initiateLogin);
+    loginButton.addEventListener('click', () => initiateLogin(authEndpoint, clientId, redirectUri, scopes, state));
     logoutButton.addEventListener('click', logout);
 
-    const params = getHashParams();
-    if (params.access_token && params.state === state) {
-        updateAppState(true);
-        fetchAllData(params.access_token).catch(handleError);
-    }
+    checkAuthentication(state);
 
     function generateRandomString(length) {
-        const possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-        return Array.from({ length }, () => possible.charAt(Math.floor(Math.random() * possible.length))).join('');
+        const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+        return Array.from({ length }, () => characters.charAt(Math.floor(Math.random() * characters.length))).join('');
     }
 
-    function initiateLogin() {
-        const authUrl = new URL(authEndpoint);
-        authUrl.searchParams.set('client_id', clientId);
-        authUrl.searchParams.set('redirect_uri', redirectUri);
-        authUrl.searchParams.set('scope', scopes.join(' '));
-        authUrl.searchParams.set('response_type', 'token');
-        authUrl.searchParams.set('state', state);
-        authUrl.searchParams.set('show_dialog', 'true');
-        window.location.href = authUrl;
+    function initiateLogin(endpoint, clientId, redirectUri, scopes, state) {
+        const url = new URL(endpoint);
+        url.search = new URLSearchParams({
+            client_id: clientId,
+            redirect_uri: redirectUri,
+            scope: scopes.join(' '),
+            response_type: 'token',
+            state: state,
+            show_dialog: 'true'
+        }).toString();
+        window.location.href = url.href;
+    }
+
+    function checkAuthentication(appState) {
+        const params = getHashParams();
+        if (params.access_token && params.state === appState) {
+            updateAppState(true);
+            fetchAllData(params.access_token).catch(handleError);
+        }
     }
 
     async function fetchAllData(token) {
-        const profile = await fetchUserProfile(token);
-        displayUserProfile(profile);
+        const profilePromise = fetchUserProfile(token);
+        const topTracksPromise = fetchTopTracks(token);
+        const topArtistsPromise = fetchTopArtists(token);
 
-        const [topTracks, topArtists] = await Promise.all([
-            fetchTopTracks(token),
-            fetchTopArtists(token)
-        ]);
-        displayTopTracks(topTracks);
-        displayTopArtists(topArtists);
+        try {
+            const [profile, topTracks, topArtists] = await Promise.all([profilePromise, topTracksPromise, topArtistsPromise]);
+            displayUserProfile(profile);
+            displayTopTracks(topTracks);
+            displayTopArtists(topArtists);
+        } catch (error) {
+            handleError(error);
+        }
     }
 
     async function fetchData(url, token) {
@@ -101,12 +110,12 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function handleError(error) {
-        console.error('Error:', error);
+        console.error('Error fetching data:', error);
         displayError('An error occurred while fetching data. Please try logging in again.');
     }
 
     function displayError(message) {
-        profileInfo.innerHTML = `<p class="error">${message}</p>`;
+        profileInfo.textContent = message; // Use textContent for plain text
         updateAppState(false);
     }
 
