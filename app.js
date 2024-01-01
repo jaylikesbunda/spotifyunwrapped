@@ -61,11 +61,23 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    async function fetchData(url, token) {
-        const response = await fetch(url, { headers: { 'Authorization': `Bearer ${token}` } });
-        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-        return response.json();
-    }
+	async function fetchData(url, token) {
+		// WARNING: This is a public proxy and should only be used for development purposes.
+		const proxyUrl = 'https://cors-anywhere.herokuapp.com/';
+		const spotifyUrl = proxyUrl + url;
+
+		const response = await fetch(spotifyUrl, {
+			headers: {
+				'Authorization': `Bearer ${token}`,
+				// The proxy server requires this header to be set.
+				'X-Requested-With': 'XMLHttpRequest'
+			}
+		});
+
+		if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+		return response.json();
+	}
+
 
     function displayUserProfile(profile) {
         profileInfo.innerHTML = `
