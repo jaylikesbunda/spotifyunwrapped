@@ -1,18 +1,22 @@
 document.addEventListener('DOMContentLoaded', () => {
-    const clientId = '949476dd2ad545b68eedc66ccc7fdf8b';
-    const redirectUri = window.location.origin + window.location.pathname;
+    const clientId = '949476dd2ad545b68eedc66ccc7fdf8b'; // Replace with your actual client ID
+    const redirectUri = `${window.location.origin}${window.location.pathname}`;
     const authEndpoint = 'https://accounts.spotify.com/authorize';
     const scopes = ['user-read-private', 'user-read-email', 'user-top-read'];
-    const state = generateRandomString(16);
+    const state = sessionStorage.getItem('state') || generateRandomString(16);
+    sessionStorage.setItem('state', state); // Persist state parameter in session storage
 
     const loginButton = document.getElementById('login-button');
     const userProfile = document.getElementById('user-profile');
     const profileInfo = document.getElementById('profile');
     const logoutButton = document.getElementById('logout-button');
+    const topTracksSection = document.getElementById('top-tracks');
+    const topArtistsSection = document.getElementById('top-artists');
 
     loginButton.addEventListener('click', initiateLogin);
     logoutButton.addEventListener('click', logout);
-
+    
+    // Call handleRedirect on page load to handle OAuth redirection
     handleRedirect();
 
     function generateRandomString(length) {
@@ -21,18 +25,24 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function initiateLogin() {
-        const url = `${authEndpoint}?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=${encodeURIComponent(scopes.join(' '))}&response_type=token&state=${state}&show_dialog=true`;
+        const url = new URL(authEndpoint);
+        url.search = new URLSearchParams({
+            client_id: clientId,
+            redirect_uri: redirectUri,
+            scope: scopes.join(' '),
+            response_type: 'token',
+            state: state,
+            show_dialog: 'true'
+        }).toString();
         window.location.href = url;
     }
 
     function handleRedirect() {
         const params = getHashParams();
-        if (params.access_token && params.state === state) {
+        if (params.access_token && params.state === sessionStorage.getItem('state')) {
             sessionStorage.setItem('accessToken', params.access_token);
-            updateAppState(true);
             fetchAllData(params.access_token);
         } else if (sessionStorage.getItem('accessToken')) {
-            updateAppState(true);
             fetchAllData(sessionStorage.getItem('accessToken'));
         }
     }
@@ -40,22 +50,21 @@ document.addEventListener('DOMContentLoaded', () => {
     async function fetchAllData(token) {
         try {
             const profile = await fetchData('https://api.spotify.com/v1/me', token);
-            displayUserProfile(profile);
             const topTracks = await fetchData('https://api.spotify.com/v1/me/top/tracks', token);
-            displayTopTracks(topTracks);
             const topArtists = await fetchData('https://api.spotify.com/v1/me/top/artists', token);
+            displayUserProfile(profile);
+            displayTopTracks(topTracks);
             displayTopArtists(topArtists);
+            updateAppState(true);
         } catch (error) {
             handleError(error);
         }
     }
 
     async function fetchData(url, token) {
-        const response = await fetch(url, {
-            headers: { 'Authorization': `Bearer ${token}` }
-        });
+        const response = await fetch(url, { headers: { 'Authorization': `Bearer ${token}` } });
         if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-        return await response.json();
+        return response.json();
     }
 
     function displayUserProfile(profile) {
@@ -88,8 +97,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function logout() {
-        sessionStorage.removeItem('accessToken');
-        window.location.href = redirectUri;
+        sessionStorage.clear(); // Clears all data from sessionStorage
+        window.location.assign(redirectUri); // Redirects to the starting page
     }
 
     function handleError(error) {
@@ -98,15 +107,32 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function displayError(message) {
-        const errorContainer = document.createElement('p');
-        errorContainer.textContent = message;
-        errorContainer.classList.add('error');
-        profileInfo.appendChild(errorContainer);
+        profileInfo.innerHTML = `<p class="error">${message}</p>`;
         updateAppState(false);
     }
 
     function updateAppState(isLoggedIn) {
         loginButton.style.display = isLoggedIn ? 'none' : 'block';
         userProfile.style.display = isLoggedIn ? 'block' : 'none';
+        if (!isLoggedIn) {
+            topTracksSection.innerHTML = '';
+            topArtistsSection.innerHTML = '';
+        }
     }
 });
+
+function getHashParams() {
+    const hashParams = {};
+    const regex = /([^&;=]+)=?([^&;]*)/g;
+    const query = window.location.hash.substring(1);
+
+    let match;
+    while ((match = regex.exec(query))) {
+        hashParams[decodeURIComponent(match[1])] = decodeURIComponent(match[2]);
+    }
+
+    // Clear the URL hash to hide access token
+    history.replaceState(null, null, ' '); // Clears the URL hash
+
+    return hashParams;
+}
