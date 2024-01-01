@@ -131,23 +131,21 @@ document.addEventListener('DOMContentLoaded', () => {
 		return response.json();
 	}
 
-	// Function to display user profile information with additional styling
 	function displayUserProfile(profile) {
-		// Check if the profile image is available
-		const profileImageUrl = profile.images && profile.images.length > 0 ? profile.images[0].url : 'default-profile.png'; // Replace 'default-profile.png' with the path to your default profile image
-		
-		// Constructing the HTML content with template literals
-		profileInfo.innerHTML = `
-			<div class="user-profile-header">
-				<img src="${profileImageUrl}" alt="${profile.display_name}" class="user-profile-image">
-				<h2 class="user-profile-name">${profile.display_name}</h2>
-			</div>
-			<div class="user-profile-details">
-				<p class="user-profile-email"><strong>Email:</strong> ${profile.email}</p>
-				<p class="user-profile-country"><strong>Country:</strong> ${profile.country}</p>
-				<p class="user-profile-followers"><strong>Followers:</strong> ${profile.followers.total.toLocaleString()}</p> <!-- Assuming 'followers' object is present -->
-			</div>
-		`;
+	  const profileHTML = `
+		<div class="user-profile-header">
+		  <img src="${profile.images[0].url}" alt="Profile image" class="user-profile-image">
+		  <div class="user-profile-name">${profile.display_name}</div>
+		</div>
+		<div class="user-profile-details">
+		  <div class="user-profile-email">Email: ${profile.email}</div>
+		  <div class="user-profile-country">Country: ${profile.country}</div>
+		  <div class="user-profile-followers">Followers: ${profile.followers.total}</div>
+		</div>
+	  `;
+	  profileInfo.innerHTML = profileHTML;
+	  profileInfo.classList.add('user-info');
+	}
 
     // Adding classes for styling
     profileInfo.classList.add('user-info');
@@ -252,22 +250,48 @@ document.addEventListener('DOMContentLoaded', () => {
 	function updateAppState(isLoggedIn) {
 		const body = document.body;
 		const loginSection = document.getElementById('login-section');
+		const userProfileSection = document.getElementById('user-profile');
+		const timeRangeSelector = document.getElementById('time-range');
 		const logoutButton = document.getElementById('logout-button');
 
-		// Toggle classes based on user state
+		// Toggle the 'user-logged-in' class on the body for global state changes
 		body.classList.toggle('user-logged-in', isLoggedIn);
-		loginSection.style.display = isLoggedIn ? 'none' : 'block';
-		logoutButton.style.display = isLoggedIn ? 'block' : 'none';
 
-		// Show or hide sections based on isLoggedIn
+		// Use the 'hidden' class to control visibility of sections
+		loginSection.classList.toggle('hidden', isLoggedIn);
+		userProfileSection.classList.toggle('hidden', !isLoggedIn);
+		timeRangeSelector.classList.toggle('hidden', !isLoggedIn);
+		logoutButton.classList.toggle('hidden', !isLoggedIn);
+
+		// Collapsible sections are managed separately if you want them to start as collapsed
 		document.querySelectorAll('.collapsible').forEach(section => {
-			section.style.display = isLoggedIn ? 'block' : 'none';
+			section.classList.toggle('hidden', !isLoggedIn);
+			// If you want to start with them collapsed, remove 'open' attribute from details elements
+			if (!isLoggedIn && section.tagName.toLowerCase() === 'details') {
+				section.removeAttribute('open');
+			}
 		});
-
-		// If logged in, also show the time range selector
-		const timeRangeSelector = document.getElementById('time-range');
-		timeRangeSelector.style.display = isLoggedIn ? 'block' : 'none';
 	}
+
+
+	// Function to make sections collapsible
+	function setupCollapsibleSections() {
+	  const collapsibles = document.querySelectorAll('.collapsible');
+	  collapsibles.forEach(collapsible => {
+		collapsible.addEventListener('click', function() {
+		  this.classList.toggle('expanded');
+		  // Toggle the max-height
+		  if (this.style.maxHeight) {
+			this.style.maxHeight = null;
+		  } else {
+			this.style.maxHeight = this.scrollHeight + 'px';
+		  }
+		});
+	  });
+	}
+
+	// Call setupCollapsibleSections after you've fetched and displayed the data
+
 
 
 	function getHashParams() {

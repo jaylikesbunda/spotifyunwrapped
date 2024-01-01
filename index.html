@@ -17,33 +17,30 @@
         </section>
         <section id="user-profile" class="user-profile hidden">
             <div id="profile" class="profile-info"></div>
-            <div id="stats-section" class="stats-section">
-                <section id="recently-played" class="stats-block collapsible hidden">
-                    <details open>
-                        <summary>Recent streams</summary>
-                        <div class="content"></div>
-                    </details>
-                </section>
-                <section id="top-tracks" class="stats-block collapsible hidden">
-                    <details open>
-                        <summary>Top tracks</summary>
-                        <div class="content"></div>
-                    </details>
-                </section>
-                <section id="top-artists" class="stats-block collapsible hidden">
-                    <details open>
-                        <summary>Top artists</summary>
-                        <div class="content"></div>
-                    </details>
-                </section>
+            <div id="stats-section" class="stats-section hidden">
+                <details id="recently-played-section" class="collapsible">
+                    <summary>Recent Streams</summary>
+                    <div class="content" id="recently-played"></div>
+                </details>
+                <details id="top-tracks-section" class="collapsible">
+                    <summary>Top Tracks</summary>
+                    <div class="content" id="top-tracks"></div>
+                </details>
+                <details id="top-artists-section" class="collapsible">
+                    <summary>Top Artists</summary>
+                    <div class="content" id="top-artists"></div>
+                </details>
                 <select id="time-range" class="time-range-select hidden">
                     <option value="short_term">Last 4 weeks</option>
                     <option value="medium_term">Last 6 months</option>
                     <option value="long_term">All time</option>
                 </select>
-                <div class="chart-container collapsible hidden">
-                    <canvas id="listening-statistics-chart"></canvas>
-                </div>
+                <details id="listening-statistics-section" class="collapsible">
+                    <summary>Listening Statistics</summary>
+                    <div class="chart-container">
+                        <canvas id="listening-statistics-chart"></canvas>
+                    </div>
+                </details>
             </div>
             <button id="logout-button" class="btn spotify-logout-btn hidden">Log Out</button>
         </section>
