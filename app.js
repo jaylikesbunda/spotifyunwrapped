@@ -121,29 +121,28 @@ document.addEventListener('DOMContentLoaded', () => {
 	  }
 	}
 
-	async function fetchAllData(token, timeRange = 'medium_term') {
-	  showLoading();
-	  try {
-		const profile = await fetchData('https://api.spotify.com/v1/me', token);
-		const topTracks = await fetchData(`https://api.spotify.com/v1/me/top/tracks?time_range=${timeRange}`, token);
-		const topArtists = await fetchData(`https://api.spotify.com/v1/me/top/artists?time_range=${timeRange}`, token);
-		const listeningStats = await fetchListeningStatistics(token, timeRange);
+    async function fetchAllData(token, timeRange = 'medium_term') {
+        showLoading();
+        try {
+            const profilePromise = fetchData('https://api.spotify.com/v1/me', token);
+            const topTracksPromise = fetchData(`https://api.spotify.com/v1/me/top/tracks?time_range=${timeRange}`, token);
+            const topArtistsPromise = fetchData(`https://api.spotify.com/v1/me/top/artists?time_range=${timeRange}`, token);
+            const listeningStatsPromise = fetchListeningStatistics(token, timeRange);
 
-		if (profile && topTracks && topArtists && listeningStats) {
-		  displayUserProfile(profile);
-		  displayTopTracks(topTracks);
-		  displayTopArtists(topArtists);
-		  displayListeningStatistics(listeningStats);
-		  await generateSummary(token, timeRange, listeningStats);
-		} else {
-		  throw new Error('One or more data fetches returned an empty result');
-		}
-	  } catch (error) {
-		handleError(error);
-	  } finally {
-		hideLoading();
-	  }
-	}
+            const [profile, topTracks, topArtists, listeningStats] = await Promise.all([profilePromise, topTracksPromise, topArtistsPromise, listeningStatsPromise]);
+
+            displayUserProfile(profile);
+            displayTopTracks(topTracks);
+            displayTopArtists(topArtists);
+            displayListeningStatistics(listeningStats);
+            await generateSummary(token, timeRange, listeningStats);
+            updateAppState(true);
+        } catch (error) {
+            handleError(error);
+        } finally {
+            hideLoading();
+        }
+    }
 
 
 	// Function to fetch recently played tracks
@@ -308,11 +307,14 @@ document.addEventListener('DOMContentLoaded', () => {
 		window.location.assign(redirectUri); // Redirect to the home page
 	}
 
-	// Function to handle any errors that occur during the fetch process
-	function handleError(error) {
-		console.error('Error:', error);
-		displayError('An error occurred while fetching data. Please try logging in again.');
-	}
+    function handleError(error) {
+        console.error('Error:', error);
+        displayError(error.message);
+        if (error.message.includes('429')) {
+            displayError('You have made too many requests in a short period of time. Please wait and try again later.');
+        }
+    }
+
 
 	function displayError(message) {
 	  // Create or select the error message container
