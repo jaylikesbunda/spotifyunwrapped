@@ -4,17 +4,31 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="style.css">
-    <title>Spotify User Profile</title>
+    <title>Spotify Stats</title>
 </head>
 <body>
     <div id="main-content">
-        <h1>Spotify User Profile</h1>
-        <button id="login-button">Log in with Spotify</button>
-        <div id="user-profile">
-            <h2>User Information</h2>
-            <div id="profile"></div>
-            <button id="logout-button">Log Out</button>
-        </div>
+        <header>
+            <h1>Spotify Stats</h1>
+        </header>
+        <section id="login-section">
+            <button id="login-button">Log in with Spotify</button>
+        </section>
+        <section id="user-profile" class="hidden">
+            <div id="profile-info">
+                <h2>User Information</h2>
+                <div id="profile"></div>
+                <button id="logout-button">Log Out</button>
+            </div>
+            <div id="stats-section">
+                <div id="top-tracks">
+                    <h2>Top Tracks</h2>
+                </div>
+                <div id="top-artists">
+                    <h2>Top Artists</h2>
+                </div>
+            </div>
+        </section>
     </div>
     <script src="utils.js"></script>
     <script src="app.js"></script>

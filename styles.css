@@ -1,30 +1,89 @@
 body {
     font-family: 'Arial', sans-serif;
-    background-color: #f7f7f7;
+    background-color: #121212; /* Spotify's dark theme background */
+    color: #ffffff;
     margin: 0;
     padding: 20px;
     display: flex;
+    flex-direction: column; /* Changed to column for better content alignment */
     justify-content: center;
     align-items: center;
-    height: 100vh;
+    min-height: 100vh;
     text-align: center;
 }
 
 #login-button, #logout-button {
-    background-color: #1DB954;
+    background-color: #1DB954; /* Spotify's brand color */
     color: white;
     border: none;
     border-radius: 50px;
     padding: 10px 30px;
     font-size: 16px;
     cursor: pointer;
-    transition: background-color 0.3s ease;
+    transition: background-color 0.3s ease, transform 0.2s ease;
 }
 
 #login-button:hover, #logout-button:hover {
-    background-color: #1ed760;
+    background-color: #1ed760; /* Slightly lighter green on hover */
+    transform: scale(1.05); /* Scale up buttons on hover */
 }
 
 #user-profile {
     display: none;
+    width: 100%; /* Full width */
+    max-width: 800px; /* Max width for larger screens */
+    margin-top: 20px; /* Added some space from the top */
+}
+
+/* Styling for Top Tracks and Artists sections */
+#top-tracks, #top-artists {
+    background-color: #282828; /* Slightly lighter than background for contrast */
+    border-radius: 10px;
+    padding: 20px;
+    margin-top: 20px;
+    width: 100%;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5); /* Adding some depth */
+}
+
+.track-item, .artist-item {
+    background-color: #1DB954;
+    color: white;
+    margin: 10px 0;
+    padding: 15px;
+    border-radius: 10px;
+    transition: transform 0.3s ease;
+    display: flex; /* Flex display for better alignment */
+    align-items: center; /* Align items vertically */
+}
+
+.track-item:hover, .artist-item:hover {
+    transform: scale(1.05);
+}
+
+.track-image, .artist-image {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    margin-right: 15px;
+}
+
+.track-info {
+    display: flex;
+    flex-direction: column; /* Stack track info vertically */
+    align-items: flex-start; /* Align items to the start */
+}
+
+@keyframes slideInFromLeft {
+    0% {
+        transform: translateX(-100%);
+        opacity: 0;
+    }
+    100% {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+.track-item, .artist-item {
+    animation: 0.5s ease-out 0s 1 slideInFromLeft;
 }
