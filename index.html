@@ -5,21 +5,27 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
-    <title>Spotify Stats</title>
+    <title>Spotify Unwrapped</title>
 </head>
 <body>
     <div id="main-content" class="container">
         <header class="main-header">
-            <h1 class="title">Unwrapped</h1>
+            <h1 class="title">Spotify Unwrapped</h1>
         </header>
         <section id="login-section" class="login-section">
             <button id="login-button" class="btn spotify-login-btn">Log in with Spotify</button>
         </section>
         <section id="user-profile" class="user-profile hidden">
-            <div id="profile" class="profile-info"></div> <!-- Ensure this ID matches the one used in your JavaScript -->
+            <div id="profile" class="profile-info"></div>
             <div id="stats-section" class="stats-section">
                 <div id="top-tracks" class="top-tracks stats-block"></div>
                 <div id="top-artists" class="top-artists stats-block"></div>
+                <!-- Dropdown for selecting time range -->
+                <select id="time-range" class="time-range-select">
+                    <option value="short_term">Last 4 weeks</option>
+                    <option value="medium_term">Last 6 months</option>
+                    <option value="long_term">All time</option>
+                </select>
                 <canvas id="listening-statistics-chart"></canvas>
             </div>
             <button id="logout-button" class="btn spotify-logout-btn">Log Out</button>
