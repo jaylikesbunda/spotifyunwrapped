@@ -57,13 +57,25 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-	// Function to fetch all necessary data after authentication
-	async function fetchAllData(token) {
+
+
+	function handleTimeRangeChange(event) {
+		const timeRange = event.target.value;
+		const accessToken = sessionStorage.getItem('accessToken');
+		if (accessToken) {
+			fetchAllData(accessToken, timeRange); // Fetch data with the selected time range
+		}
+	}
+
+	// Modify fetchAllData to accept timeRange as a parameter
+	async function fetchAllData(token, timeRange = 'medium_term') {
 		showLoading(); // Show loading indicator
 		try {
+			// Use timeRange to fetch the correct data
 			const profile = await fetchData('https://api.spotify.com/v1/me', token);
-			const topTracks = await fetchData('https://api.spotify.com/v1/me/top/tracks', token);
-			const topArtists = await fetchData('https://api.spotify.com/v1/me/top/artists', token);
+			const topTracks = await fetchData(`https://api.spotify.com/v1/me/top/tracks?time_range=${timeRange}`, token);
+			const topArtists = await fetchData(`https://api.spotify.com/v1/me/top/artists?time_range=${timeRange}`, token);
+			
 			displayUserProfile(profile);
 			displayTopTracks(topTracks);
 			displayTopArtists(topArtists);
@@ -182,11 +194,18 @@ document.addEventListener('DOMContentLoaded', () => {
 		updateAppState(false);
 	}
 
-	// Function to update the application state based on login status
 	function updateAppState(isLoggedIn) {
 		loginButton.style.display = isLoggedIn ? 'none' : 'block';
 		userProfile.style.display = isLoggedIn ? 'block' : 'none';
-		if (!isLoggedIn) {
+		// You may also want to add checks to ensure these elements are not null
+		if (isLoggedIn) {
+			timeRangeDropdown.classList.remove('hidden');
+			topTracksSection.classList.remove('hidden');
+			topArtistsSection.classList.remove('hidden');
+		} else {
+			timeRangeDropdown.classList.add('hidden');
+			topTracksSection.classList.add('hidden');
+			topArtistsSection.classList.add('hidden');
 			topTracksSection.innerHTML = '';
 			topArtistsSection.innerHTML = '';
 		}
