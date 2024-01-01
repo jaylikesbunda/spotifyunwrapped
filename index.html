@@ -3,33 +3,36 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet"> <!-- Include a web font -->
     <link rel="stylesheet" href="style.css">
     <title>Spotify Stats</title>
 </head>
 <body>
-    <div id="main-content">
-        <header>
-            <h1>Spotify Stats</h1>
+    <main id="main-content">
+        <header class="main-header">
+            <h1 class="title">Spotify Stats</h1>
         </header>
-        <section id="login-section">
-            <button id="login-button">Log in with Spotify</button>
+        <section id="login-section" class="login-section">
+            <button id="login-button" class="spotify-login-btn">Log in with Spotify</button>
         </section>
-        <section id="user-profile" class="hidden">
-            <div id="profile-info">
-                <h2>User Information</h2>
-                <div id="profile"></div>
-                <button id="logout-button">Log Out</button>
-            </div>
-            <div id="stats-section">
-                <div id="top-tracks">
-                    <h2>Top Tracks</h2>
-                </div>
-                <div id="top-artists">
-                    <h2>Top Artists</h2>
-                </div>
-            </div>
+        <section id="user-profile" class="user-profile hidden">
+            <article id="profile-info" class="profile-info">
+                <h2 class="section-title">User Information</h2>
+                <div id="profile" class="profile-data"></div>
+                <button id="logout-button" class="spotify-logout-btn">Log Out</button>
+            </article>
+            <article id="stats-section" class="stats-section">
+                <section id="top-tracks" class="top-tracks">
+                    <h2 class="section-title">Top Tracks</h2>
+                    <div class="tracks-container"></div> <!-- Container for dynamic track list -->
+                </section>
+                <section id="top-artists" class="top-artists">
+                    <h2 class="section-title">Top Artists</h2>
+                    <div class="artists-container"></div> <!-- Container for dynamic artist list -->
+                </section>
+            </article>
         </section>
-    </div>
+    </main>
     <script src="utils.js"></script>
     <script src="app.js"></script>
 </body>
