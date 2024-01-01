@@ -148,68 +148,80 @@ document.addEventListener('DOMContentLoaded', () => {
 	  profileInfo.classList.add('user-info');
 	}
 
-	// Function to display listening statistics without Chart.js
 	function displayListeningStatistics(data) {
-		const statsContainer = document.getElementById('listening-statistics-section');
-		const chartContainer = statsContainer.querySelector('.chart-container');
+		const statsContainer = document.getElementById('listening-statistics-section').querySelector('.stats-container');
+		statsContainer.innerHTML = '';
 
-		// Clear existing content
-		chartContainer.innerHTML = '';
-
-		// Check if data is available
 		if (data && data.length) {
-			const list = document.createElement('ul');
-			list.className = 'listening-stats-list';
-
-			data.forEach(item => {
+			const limitedData = data.slice(0, 5); // Display only first 5 items initially
+			limitedData.forEach(item => {
 				const listItem = document.createElement('li');
 				listItem.className = 'listening-stats-item';
 				listItem.textContent = `${item.name}: ${item.value}`;
-				list.appendChild(listItem);
+				statsContainer.appendChild(listItem);
 			});
 
-			chartContainer.appendChild(list);
-			statsContainer.classList.add('expanded'); // Toggle expansion
+			// Add a 'Show More' button if there are more items
+			if (data.length > 5) {
+				const showMoreButton = createShowMoreButton('listening-stats');
+				statsContainer.appendChild(showMoreButton);
+			}
 		}
 	}
 
-	// Function to display top tracks
 	function displayTopTracks(tracks) {
 		if (!tracks || !tracks.items) {
 			console.error('Invalid track data');
 			return;
 		}
 		const topTracksSection = document.getElementById('top-tracks');
-		topTracksSection.innerHTML = '<h2>Top Tracks</h2>' + tracks.items.map(track => {
-			const image = track.album.images[0] ? track.album.images[0].url : 'default-image.png';
-			return `
-				<div class="track-item">
-					<img src="${image}" alt="${track.name}" class="track-image">
-					<div class="track-info">
-						<h3>${track.name}</h3>
-						<p>${track.artists.map(artist => artist.name).join(', ')}</p>
-					</div>
-				</div>
-			`;
-		}).join('');
+		const limitedTracks = tracks.items.slice(0, 5); // Display only first 5 tracks initially
+		topTracksSection.innerHTML = limitedTracks.map(track => createTrackItem(track)).join('');
+
+		// Add 'Show More' button if there are more tracks
+		if (tracks.items.length > 5) {
+			const showMoreButton = createShowMoreButton('top-tracks');
+			topTracksSection.appendChild(showMoreButton);
+		}
 	}
 
-	// Function to display top artists
+	function createTrackItem(track) {
+		const image = track.album.images[0] ? track.album.images[0].url : 'default-image.png';
+		return `
+			<div class="track-item">
+				<img src="${image}" alt="${track.name}" class="track-image">
+				<div class="track-info">
+					<h3>${track.name}</h3>
+					<p>${track.artists.map(artist => artist.name).join(', ')}</p>
+				</div>
+			</div>
+		`;
+	}
+
 	function displayTopArtists(artists) {
 		if (!artists || !artists.items) {
 			console.error('Invalid artist data');
 			return;
 		}
 		const topArtistsSection = document.getElementById('top-artists');
-		topArtistsSection.innerHTML = '<h2>Top Artists</h2>' + artists.items.map(artist => {
-			const image = artist.images[0] ? artist.images[0].url : 'default-image.png';
-			return `
-				<div class="artist-item">
-					<img src="${image}" alt="${artist.name}" class="artist-image">
-					<h3>${artist.name}</h3>
-				</div>
-			`;
-		}).join('');
+		const limitedArtists = artists.items.slice(0, 5); // Display only first 5 artists initially
+		topArtistsSection.innerHTML = limitedArtists.map(artist => createArtistItem(artist)).join('');
+
+		// Add 'Show More' button if there are more artists
+		if (artists.items.length > 5) {
+			const showMoreButton = createShowMoreButton('top-artists');
+			topArtistsSection.appendChild(showMoreButton);
+		}
+	}
+
+	function createArtistItem(artist) {
+		const image = artist.images[0] ? artist.images[0].url : 'default-image.png';
+		return `
+			<div class="artist-item">
+				<img src="${image}" alt="${artist.name}" class="artist-image">
+				<h3>${artist.name}</h3>
+			</div>
+		`;
 	}
 	function logout() {
 		sessionStorage.clear();
@@ -229,10 +241,26 @@ document.addEventListener('DOMContentLoaded', () => {
 		updateAppState(false);
 	}
 
-	// Function to update the application's state based on whether a user is logged in
+	function createShowMoreButton(targetId) {
+		const button = document.createElement('button');
+		button.className = 'btn show-more';
+		button.textContent = 'Show More';
+		button.addEventListener('click', () => toggleShowMore(targetId, button));
+		return button;
+	}
+
+	function toggleShowMore(targetId, button) {
+		const target = document.getElementById(targetId);
+		target.classList.toggle('show-all');
+		button.textContent = target.classList.contains('show-all') ? 'Show Less' : 'Show More';
+	}
+
+
 	function updateAppState(isLoggedIn) {
 		const loginSection = document.getElementById('login-section');
 		const userProfileSection = document.getElementById('user-profile');
+		const statsSection = document.getElementById('stats-section');
+		const summarySection = document.getElementById('summary-section');
 		const timeRangeSelector = document.getElementById('time-range');
 		const logoutButton = document.getElementById('logout-button');
 
@@ -242,33 +270,16 @@ document.addEventListener('DOMContentLoaded', () => {
 		timeRangeSelector.classList.toggle('hidden', !isLoggedIn);
 		logoutButton.classList.toggle('hidden', !isLoggedIn);
 
-		// Manage the visibility of collapsible sections directly
-		document.querySelectorAll('.collapsible').forEach(section => {
-			if (isLoggedIn) {
-				section.classList.remove('hidden');
-				section.open = true; // Explicitly open details elements
-				section.style.maxHeight = section.scrollHeight + 'px';
-			} else {
-				section.classList.add('hidden');
-				section.removeAttribute('open');
-				section.style.maxHeight = null;
-			}
-		});
+		// Manage the visibility of stats and summary sections
+		if (isLoggedIn) {
+			statsSection.classList.remove('hidden');
+			summarySection.classList.remove('hidden');
+		} else {
+			statsSection.classList.add('hidden');
+			summarySection.classList.add('hidden');
+		}
 	}
 
-	// Function to initialize collapsible sections
-	function setupCollapsibleSections() {
-		document.querySelectorAll('.collapsible summary').forEach(summary => {
-			summary.addEventListener('click', event => {
-				const details = summary.parentNode;
-				const isExpanded = details.classList.contains('expanded');
-				details.classList.toggle('expanded', !isExpanded);
-				details.open = !isExpanded; // Toggle the 'open' state
-				details.style.maxHeight = isExpanded ? null : details.scrollHeight + 'px';
-				event.preventDefault(); // Prevent default action to allow for custom behavior
-			});
-		});
-	}
 
 	function getHashParams() {
 		const hashParams = {};

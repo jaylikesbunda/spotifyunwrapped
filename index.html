@@ -17,29 +17,34 @@
         </section>
         <section id="user-profile" class="user-profile hidden">
             <div id="profile" class="profile-info"></div>
-            <div id="stats-section" class="stats-section hidden">
-                <details id="top-tracks-section" class="collapsible">
-                    <summary>Top Tracks</summary>
-                    <div class="content" id="top-tracks"></div>
-                </details>
-                <details id="top-artists-section" class="collapsible">
-                    <summary>Top Artists</summary>
-                    <div class="content" id="top-artists"></div>
-                </details>
-                <select id="time-range" class="time-range-select hidden">
-                    <option value="short_term">Last 4 weeks</option>
-                    <option value="medium_term">Last 6 months</option>
-                    <option value="long_term">All time</option>
-                </select>
-                <details id="listening-statistics-section" class="collapsible">
-                    <summary>Listening Statistics</summary>
-                    <div class="stats-container"></div> <!-- Updated container for stats -->
-                </details>
+
+            <!-- Summary Section -->
+            <div id="summary-section" class="summary-section hidden">
+                <h2>Your Spotify Summary</h2>
+                <div id="summary-content"></div>
             </div>
+
+            <!-- Stats Section with Show More Buttons -->
+            <div id="stats-section" class="stats-section hidden">
+                <div id="top-tracks-section" class="top-tracks-section">
+                    <h2>Top Tracks</h2>
+                    <div class="content limited" id="top-tracks"></div>
+                    <button class="btn show-more" data-target="top-tracks">Show More</button>
+                </div>
+                <div id="top-artists-section" class="top-artists-section">
+                    <h2>Top Artists</h2>
+                    <div class="content limited" id="top-artists"></div>
+                    <button class="btn show-more" data-target="top-artists">Show More</button>
+                </div>
+                <div id="listening-statistics-section" class="listening-statistics-section">
+                    <h2>Listening Statistics</h2>
+                    <div class="stats-container"></div>
+                </div>
+            </div>
+
             <button id="logout-button" class="btn spotify-logout-btn hidden">Log Out</button>
         </section>
     </div>
-    <!-- Removed Chart.js script as it's no longer used -->
     <script src="utils.js"></script>
     <script src="app.js"></script>
 </body>
