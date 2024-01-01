@@ -1,0 +1,30 @@
+body {
+    font-family: 'Arial', sans-serif;
+    background-color: #f7f7f7;
+    margin: 0;
+    padding: 20px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    text-align: center;
+}
+
+#login-button, #logout-button {
+    background-color: #1DB954;
+    color: white;
+    border: none;
+    border-radius: 50px;
+    padding: 10px 30px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+#login-button:hover, #logout-button:hover {
+    background-color: #1ed760;
+}
+
+#user-profile {
+    display: none;
+}
