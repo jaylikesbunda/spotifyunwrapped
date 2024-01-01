@@ -16,12 +16,16 @@ document.addEventListener('DOMContentLoaded', () => {
     const profileInfo = document.getElementById('profile');
     const topTracksSection = document.getElementById('top-tracks');
     const topArtistsSection = document.getElementById('top-artists');
-    const timeRangeDropdown = document.getElementById('time-range'); // Added dropdown element reference
+    const timeRangeDropdown = document.getElementById('time-range'); // Dropdown element reference
 
     // Event listeners
     loginButton.addEventListener('click', initiateLogin);
     logoutButton.addEventListener('click', logout);
-    timeRangeDropdown.addEventListener('change', handleTimeRangeChange); // Added listener for time range changes
+
+    // Check if timeRangeDropdown exists before adding an event listener
+    if (timeRangeDropdown) {
+        timeRangeDropdown.addEventListener('change', handleTimeRangeChange); // Listener for time range changes
+    }
 
     // Handling OAuth redirection
     handleRedirect();
