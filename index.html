@@ -18,20 +18,29 @@
         <section id="user-profile" class="user-profile hidden">
             <div id="profile" class="profile-info"></div>
             <div id="stats-section" class="stats-section">
-                <div id="top-tracks" class="top-tracks stats-block"></div>
-                <div id="top-artists" class="top-artists stats-block"></div>
+                <!-- Recently Played Tracks Section -->
+                <div id="recently-played" class="stats-block collapsible hidden"></div>
+                <!-- Top Tracks Section -->
+                <div id="top-tracks" class="top-tracks stats-block collapsible hidden"></div>
+                <!-- Top Artists Section -->
+                <div id="top-artists" class="top-artists stats-block collapsible hidden"></div>
                 <!-- Dropdown for selecting time range -->
-                <select id="time-range" class="time-range-select">
+                <select id="time-range" class="time-range-select hidden">
                     <option value="short_term">Last 4 weeks</option>
                     <option value="medium_term">Last 6 months</option>
                     <option value="long_term">All time</option>
                 </select>
-                <canvas id="listening-statistics-chart"></canvas>
+                <!-- Chart Container -->
+                <div class="chart-container collapsible hidden">
+                    <canvas id="listening-statistics-chart"></canvas>
+                </div>
             </div>
-            <button id="logout-button" class="btn spotify-logout-btn">Log Out</button>
+            <!-- Logout Button -->
+            <button id="logout-button" class="btn spotify-logout-btn hidden">Log Out</button>
         </section>
     </div>
-	<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- JavaScript Resources -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="utils.js"></script>
     <script src="app.js"></script>
 </body>

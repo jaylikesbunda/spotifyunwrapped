@@ -131,51 +131,81 @@ document.addEventListener('DOMContentLoaded', () => {
 		return response.json();
 	}
 
-	// Function to display user profile information
+	// Function to display user profile information with additional styling
 	function displayUserProfile(profile) {
+		// Check if the profile image is available
+		const profileImageUrl = profile.images && profile.images.length > 0 ? profile.images[0].url : 'default-profile.png'; // Replace 'default-profile.png' with the path to your default profile image
+		
+		// Constructing the HTML content with template literals
 		profileInfo.innerHTML = `
-			<h3>${profile.display_name}</h3>
-			<p><strong>Email:</strong> ${profile.email}</p>
-			<p><strong>Country:</strong> ${profile.country}</p>
+			<div class="user-profile-header">
+				<img src="${profileImageUrl}" alt="${profile.display_name}" class="user-profile-image">
+				<h2 class="user-profile-name">${profile.display_name}</h2>
+			</div>
+			<div class="user-profile-details">
+				<p class="user-profile-email"><strong>Email:</strong> ${profile.email}</p>
+				<p class="user-profile-country"><strong>Country:</strong> ${profile.country}</p>
+				<p class="user-profile-followers"><strong>Followers:</strong> ${profile.followers.total.toLocaleString()}</p> <!-- Assuming 'followers' object is present -->
+			</div>
 		`;
-		profileInfo.classList.add('user-info');
-	}
 
-	// Function to display recently played tracks
+    // Adding classes for styling
+    profileInfo.classList.add('user-info');
+}
+
+	// Assuming the 'recently-played' section is defined in your HTML
 	function displayRecentlyPlayed(recentlyPlayed) {
 		const recentlyPlayedSection = document.getElementById('recently-played');
-		recentlyPlayedSection.innerHTML = recentlyPlayed.items.map(item => `
-			<div class="track-item">
-				<img src="${item.track.album.images[0].url}" alt="${item.track.name}" class="track-image">
-				<div class="track-info">
-					<h3>${item.track.name}</h3>
-					<p>${item.track.artists.map(artist => artist.name).join(', ')}</p>
+		if (recentlyPlayedSection) {
+			recentlyPlayedSection.innerHTML = recentlyPlayed.items.map(item => `
+				<div class="track-item">
+					<img src="${item.track.album.images[0].url}" alt="${item.track.name}" class="track-image">
+					<div class="track-info">
+						<h3>${item.track.name}</h3>
+						<p>${item.track.artists.map(artist => artist.name).join(', ')}</p>
+					</div>
 				</div>
-			</div>
-		`).join('');
+			`).join('');
+			// Toggle expansion if needed
+			recentlyPlayedSection.classList.toggle('expanded', recentlyPlayed.items.length > 0);
+		}
+	}
+	
+	
+		// Function to toggle the expansion of a stats block
+	function toggleStatsBlockExpansion(blockId) {
+		const block = document.getElementById(blockId);
+		block.classList.toggle('expanded');
 	}
 
-	// Function to display listening statistics using Chart.js
+	// Updated function to handle the Chart.js display
 	function displayListeningStatistics(data) {
 		const ctx = document.getElementById('listening-statistics-chart').getContext('2d');
-		new Chart(ctx, {
-			type: 'bar',
-			data: {
-				labels: data.map(item => item.name),
-				datasets: [{
-					label: 'Listening Statistics',
-					data: data.map(item => item.value),
-					backgroundColor: 'rgba(0, 123, 255, 0.5)',
-					borderColor: 'rgba(0, 123, 255, 1)',
-					borderWidth: 1
-				}]
-			},
-			options: {
-				scales: {
-					y: [{ ticks: { beginAtZero: true } }]
+		const chartContainer = ctx.canvas.parentElement;
+		
+		// Check if data is available and the chart container exists
+		if (data && data.length && chartContainer) {
+			new Chart(ctx, {
+				type: 'bar',
+				data: {
+					labels: data.map(item => item.name),
+					datasets: [{
+						label: 'Listening Statistics',
+						data: data.map(item => item.value),
+						backgroundColor: 'rgba(0, 123, 255, 0.5)',
+						borderColor: 'rgba(0, 123, 255, 1)',
+						borderWidth: 1
+					}]
+				},
+				options: {
+					scales: {
+						y: [{ ticks: { beginAtZero: true } }]
+					}
 				}
-			}
-		});
+			});
+			// Toggle expansion
+			chartContainer.classList.add('expanded');
+		}
 	}
 
 	// Function to display top tracks
