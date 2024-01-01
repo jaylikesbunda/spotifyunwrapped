@@ -250,19 +250,25 @@ document.addEventListener('DOMContentLoaded', () => {
 	}
 
 	function updateAppState(isLoggedIn) {
+		const body = document.body;
 		const loginSection = document.getElementById('login-section');
-		const userProfileSection = document.getElementById('user-profile');
-		const statsSection = document.getElementById('stats-section');
-		const timeRangeSelector = document.getElementById('time-range');
 		const logoutButton = document.getElementById('logout-button');
 
-		loginSection.classList.toggle('hidden', isLoggedIn);
-		userProfileSection.classList.toggle('hidden', !isLoggedIn);
-		statsSection.classList.toggle('hidden', !isLoggedIn);
-		timeRangeSelector.classList.toggle('hidden', !isLoggedIn);
-		logoutButton.classList.toggle('hidden', !isLoggedIn);
-		// Call show/hide functions for other elements if needed
+		// Toggle classes based on user state
+		body.classList.toggle('user-logged-in', isLoggedIn);
+		loginSection.style.display = isLoggedIn ? 'none' : 'block';
+		logoutButton.style.display = isLoggedIn ? 'block' : 'none';
+
+		// Show or hide sections based on isLoggedIn
+		document.querySelectorAll('.collapsible').forEach(section => {
+			section.style.display = isLoggedIn ? 'block' : 'none';
+		});
+
+		// If logged in, also show the time range selector
+		const timeRangeSelector = document.getElementById('time-range');
+		timeRangeSelector.style.display = isLoggedIn ? 'block' : 'none';
 	}
+
 
 	function getHashParams() {
 		const hashParams = {};

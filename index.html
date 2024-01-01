@@ -18,28 +18,36 @@
         <section id="user-profile" class="user-profile hidden">
             <div id="profile" class="profile-info"></div>
             <div id="stats-section" class="stats-section">
-                <!-- Recently Played Tracks Section -->
-                <div id="recently-played" class="stats-block collapsible hidden"></div>
-                <!-- Top Tracks Section -->
-                <div id="top-tracks" class="top-tracks stats-block collapsible hidden"></div>
-                <!-- Top Artists Section -->
-                <div id="top-artists" class="top-artists stats-block collapsible hidden"></div>
-                <!-- Dropdown for selecting time range -->
+                <section id="recently-played" class="stats-block collapsible hidden">
+                    <details open>
+                        <summary>Recent streams</summary>
+                        <div class="content"></div>
+                    </details>
+                </section>
+                <section id="top-tracks" class="stats-block collapsible hidden">
+                    <details open>
+                        <summary>Top tracks</summary>
+                        <div class="content"></div>
+                    </details>
+                </section>
+                <section id="top-artists" class="stats-block collapsible hidden">
+                    <details open>
+                        <summary>Top artists</summary>
+                        <div class="content"></div>
+                    </details>
+                </section>
                 <select id="time-range" class="time-range-select hidden">
                     <option value="short_term">Last 4 weeks</option>
                     <option value="medium_term">Last 6 months</option>
                     <option value="long_term">All time</option>
                 </select>
-                <!-- Chart Container -->
                 <div class="chart-container collapsible hidden">
                     <canvas id="listening-statistics-chart"></canvas>
                 </div>
             </div>
-            <!-- Logout Button -->
             <button id="logout-button" class="btn spotify-logout-btn hidden">Log Out</button>
         </section>
     </div>
-    <!-- JavaScript Resources -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="utils.js"></script>
     <script src="app.js"></script>
