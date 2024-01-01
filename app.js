@@ -147,10 +147,6 @@ document.addEventListener('DOMContentLoaded', () => {
 	  profileInfo.classList.add('user-info');
 	}
 
-    // Adding classes for styling
-    profileInfo.classList.add('user-info');
-}
-
 
 	// Updated function to handle the Chart.js display
 	function displayListeningStatistics(data) {
