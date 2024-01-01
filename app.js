@@ -25,6 +25,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Handling OAuth redirection
     handleRedirect();
+	showLoading();
+    hideLoading();
 
     // Utility function to generate a random string
     function generateRandomString(length) {
@@ -66,6 +68,33 @@ document.addEventListener('DOMContentLoaded', () => {
 			fetchAllData(accessToken, timeRange); // Fetch data with the selected time range
 		}
 	}
+
+	function showLoading() {
+		// Create a loading indicator element if it doesn't exist
+		let loader = document.getElementById('loading-indicator');
+		if (!loader) {
+			loader = document.createElement('div');
+			loader.id = 'loading-indicator';
+			loader.textContent = 'Loading...';
+			loader.style.position = 'fixed';
+			loader.style.top = '50%';
+			loader.style.left = '50%';
+			loader.style.transform = 'translate(-50%, -50%)';
+			loader.style.color = 'white';
+			loader.style.fontSize = '1.5em';
+			document.body.appendChild(loader);
+		}
+	}
+
+	function hideLoading() {
+		// Remove the loading indicator element if it exists
+		const loader = document.getElementById('loading-indicator');
+		if (loader) {
+			loader.remove();
+		}
+	}
+
+
 
 	// Modify fetchAllData to accept timeRange as a parameter
 	async function fetchAllData(token, timeRange = 'medium_term') {
@@ -147,7 +176,7 @@ document.addEventListener('DOMContentLoaded', () => {
 			},
 			options: {
 				scales: {
-					yAxes: [{ ticks: { beginAtZero: true } }]
+					y: [{ ticks: { beginAtZero: true } }]
 				}
 			}
 		});
