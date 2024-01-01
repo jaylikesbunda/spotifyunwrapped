@@ -35,6 +35,27 @@ body {
   margin: 0 auto;
 }
 
+.collapsible {
+    overflow: hidden;
+    transition: max-height 0.3s ease;
+}
+
+.collapsible.expanded {
+    border: 1px solid #1DB954;
+}
+
+
+#loading-indicator {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: #1DB954;
+    font-size: 2rem;
+    z-index: 1000;
+}
+
+
 .stats-block {
   background-color: #282828;
   border-radius: 15px;

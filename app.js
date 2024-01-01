@@ -92,11 +92,10 @@ document.addEventListener('DOMContentLoaded', () => {
 	}
 
 
-	// Modify fetchAllData to accept timeRange as a parameter
+	// Function to fetch all user data including profile, top tracks, and top artists
 	async function fetchAllData(token, timeRange = 'medium_term') {
 		showLoading(); // Show loading indicator
 		try {
-			// Use timeRange to fetch the correct data
 			const profile = await fetchData('https://api.spotify.com/v1/me', token);
 			const topTracks = await fetchData(`https://api.spotify.com/v1/me/top/tracks?time_range=${timeRange}`, token);
 			const topArtists = await fetchData(`https://api.spotify.com/v1/me/top/artists?time_range=${timeRange}`, token);
@@ -104,13 +103,15 @@ document.addEventListener('DOMContentLoaded', () => {
 			displayUserProfile(profile);
 			displayTopTracks(topTracks);
 			displayTopArtists(topArtists);
-			updateAppState(true);
+			setupCollapsibleSections(); // Initialize collapsible sections
+			updateAppState(true); // Update UI to reflect logged-in state
 		} catch (error) {
-			handleError(error);
+			handleError(error); // Handle any errors that occur during the fetch process
 		} finally {
-			hideLoading(); // Hide loading indicator
+			hideLoading(); // Hide loading indicator once data is fetched
 		}
 	}
+
 
 	// Function to fetch recently played tracks
 	async function fetchRecentlyPlayed(token) {
@@ -207,7 +208,7 @@ document.addEventListener('DOMContentLoaded', () => {
 		window.location.assign(redirectUri); // Redirect to the home page
 	}
 
-	// Function to handle errors
+	// Function to handle any errors that occur during the fetch process
 	function handleError(error) {
 		console.error('Error:', error);
 		displayError('An error occurred while fetching data. Please try logging in again.');
@@ -219,50 +220,54 @@ document.addEventListener('DOMContentLoaded', () => {
 		updateAppState(false);
 	}
 
+	// Function to update the application's state based on whether a user is logged in
 	function updateAppState(isLoggedIn) {
-		const body = document.body;
 		const loginSection = document.getElementById('login-section');
 		const userProfileSection = document.getElementById('user-profile');
 		const timeRangeSelector = document.getElementById('time-range');
 		const logoutButton = document.getElementById('logout-button');
+		const collapsibleSections = document.querySelectorAll('.collapsible');
 
-		// Toggle the 'user-logged-in' class on the body for global state changes
-		body.classList.toggle('user-logged-in', isLoggedIn);
-
-		// Use the 'hidden' class to control visibility of sections
+		// Toggle visibility of login/logout sections and time range selector
 		loginSection.classList.toggle('hidden', isLoggedIn);
 		userProfileSection.classList.toggle('hidden', !isLoggedIn);
 		timeRangeSelector.classList.toggle('hidden', !isLoggedIn);
 		logoutButton.classList.toggle('hidden', !isLoggedIn);
+		collapsibleSections.forEach(section => section.classList.toggle('hidden', !isLoggedIn));
 
-		// Collapsible sections are managed separately if you want them to start as collapsed
-		document.querySelectorAll('.collapsible').forEach(section => {
-			section.classList.toggle('hidden', !isLoggedIn);
-			// If you want to start with them collapsed, remove 'open' attribute from details elements
-			if (!isLoggedIn && section.tagName.toLowerCase() === 'details') {
+		if (isLoggedIn) {
+			// Open all collapsible sections if the user is logged in
+			collapsibleSections.forEach(section => {
+				section.open = true;
+				section.style.maxHeight = section.scrollHeight + 'px';
+			});
+		} else {
+			// Reset collapsible sections upon logout
+			collapsibleSections.forEach(section => {
 				section.removeAttribute('open');
-			}
-		});
+				section.style.maxHeight = null;
+			});
+		}
 	}
 
 
-	// Function to make sections collapsible
+	// Function to initialize collapsible sections
 	function setupCollapsibleSections() {
-	  const collapsibles = document.querySelectorAll('.collapsible');
-	  collapsibles.forEach(collapsible => {
-		collapsible.addEventListener('click', function() {
-		  this.classList.toggle('expanded');
-		  // Toggle the max-height
-		  if (this.style.maxHeight) {
-			this.style.maxHeight = null;
-		  } else {
-			this.style.maxHeight = this.scrollHeight + 'px';
-		  }
+		const collapsibles = document.querySelectorAll('.collapsible summary');
+		collapsibles.forEach(collapsible => {
+			collapsible.addEventListener('click', function(event) {
+				const details = this.parentElement;
+				details.classList.toggle('expanded');
+				details.open = !details.open; // Toggle the 'open' state
+				if (details.open) {
+					details.style.maxHeight = details.scrollHeight + 'px';
+				} else {
+					details.style.maxHeight = null;
+				}
+				event.preventDefault(); // Prevent default action to allow for custom behavior
+			});
 		});
-	  });
 	}
-
-	// Call setupCollapsibleSections after you've fetched and displayed the data
 
 
 
