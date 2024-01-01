@@ -17,7 +17,14 @@
         </section>
         <section id="user-profile" class="user-profile hidden">
             <div id="profile" class="profile-info"></div>
-
+			<div class="time-range-selector">
+				<label for="time-range">Select time range:</label>
+				<select id="time-range" class="time-range-select">
+					<option value="short_term">Last 4 weeks</option>
+					<option value="medium_term">Last 6 months</option>
+					<option value="long_term">All time</option>
+				</select>
+			</div>
             <!-- Summary Section -->
             <div id="summary-section" class="summary-section hidden">
                 <h2>Your Spotify Summary</h2>

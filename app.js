@@ -68,7 +68,6 @@ document.addEventListener('DOMContentLoaded', () => {
 		}
 	}
 
-
 	function handleTimeRangeChange(event) {
 		const timeRange = event.target.value;
 		const accessToken = sessionStorage.getItem('accessToken');
@@ -152,24 +151,15 @@ document.addEventListener('DOMContentLoaded', () => {
 	}
 
 	function displayListeningStatistics(data) {
-		const statsContainer = document.getElementById('listening-statistics-section').querySelector('.stats-container');
-		statsContainer.innerHTML = '';
+		const statsContainer = document.getElementById('listening-statistics-section');
+		// Clear existing content and check if data is available
+		statsContainer.innerHTML = data && data.length > 0 ? createStatsList(data) : '<p>No listening statistics available.</p>';
+	}
 
-		if (data && data.length) {
-			const limitedData = data.slice(0, 5); // Display only first 5 items initially
-			limitedData.forEach(item => {
-				const listItem = document.createElement('li');
-				listItem.className = 'listening-stats-item';
-				listItem.textContent = `${item.name}: ${item.value}`;
-				statsContainer.appendChild(listItem);
-			});
-
-			// Add a 'Show More' button if there are more items
-			if (data.length > 5) {
-				const showMoreButton = createShowMoreButton('listening-stats');
-				statsContainer.appendChild(showMoreButton);
-			}
-		}
+	function createStatsList(data) {
+		const limitedData = data.slice(0, 5); // Example limit for initial display
+		const listHTML = limitedData.map(item => `<li class='listening-stats-item'>${item.name}: ${item.value}</li>`).join('');
+		return `<ul class='listening-stats-list'>${listHTML}</ul>`;
 	}
 
 	function displayTopTracks(tracks) {
@@ -248,14 +238,15 @@ document.addEventListener('DOMContentLoaded', () => {
 		const button = document.createElement('button');
 		button.className = 'btn show-more';
 		button.textContent = 'Show More';
-		button.addEventListener('click', () => toggleShowMore(targetId, button));
+		button.onclick = () => toggleShowMore(targetId, button); // Assign event handler
 		return button;
 	}
 
 	function toggleShowMore(targetId, button) {
 		const target = document.getElementById(targetId);
-		target.classList.toggle('show-all');
-		button.textContent = target.classList.contains('show-all') ? 'Show Less' : 'Show More';
+		const isExpanded = target.classList.toggle('show-all');
+		button.textContent = isExpanded ? 'Show Less' : 'Show More';
+		// Ensure that the target's content is properly toggled
 	}
 
 
