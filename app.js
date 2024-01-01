@@ -107,7 +107,6 @@ document.addEventListener('DOMContentLoaded', () => {
 			displayUserProfile(profile);
 			displayTopTracks(topTracks);
 			displayTopArtists(topArtists);
-			setupCollapsibleSections(); // Initialize collapsible sections
 			updateAppState(true); // Update UI to reflect logged-in state
 		} catch (error) {
 			handleError(error); // Handle any errors that occur during the fetch process
