@@ -1,48 +1,44 @@
 body {
-    font-family: 'Arial', sans-serif;
-    background-color: #121212; /* Spotify's dark theme background */
+    font-family: 'Roboto', sans-serif;
+    background-color: #121212;
     color: #ffffff;
     margin: 0;
     padding: 20px;
     display: flex;
-    flex-direction: column; /* Changed to column for better content alignment */
+    flex-direction: column;
     justify-content: center;
     align-items: center;
     min-height: 100vh;
     text-align: center;
 }
 
-#login-button, #logout-button {
-    background-color: #1DB954; /* Spotify's brand color */
+.btn {
+    background-color: #1DB954;
     color: white;
     border: none;
-    border-radius: 50px;
+    border-radius: 20px;
     padding: 10px 30px;
     font-size: 16px;
     cursor: pointer;
-    transition: background-color 0.3s ease, transform 0.2s ease;
+    transition: background-color 0.3s, transform 0.2s;
 }
 
-#login-button:hover, #logout-button:hover {
-    background-color: #1ed760; /* Slightly lighter green on hover */
-    transform: scale(1.05); /* Scale up buttons on hover */
+.btn:hover {
+    background-color: #1ed760;
+    transform: scale(1.05);
 }
 
-#user-profile {
-    display: none;
-    width: 100%; /* Full width */
-    max-width: 800px; /* Max width for larger screens */
-    margin-top: 20px; /* Added some space from the top */
+.container {
+    width: 100%;
+    max-width: 800px;
 }
 
-/* Styling for Top Tracks and Artists sections */
-#top-tracks, #top-artists {
-    background-color: #282828; /* Slightly lighter than background for contrast */
+.stats-block {
+    background-color: #282828;
     border-radius: 10px;
     padding: 20px;
     margin-top: 20px;
-    width: 100%;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5); /* Adding some depth */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
 }
 
 .track-item, .artist-item {
@@ -51,9 +47,9 @@ body {
     margin: 10px 0;
     padding: 15px;
     border-radius: 10px;
+    display: flex;
+    align-items: center;
     transition: transform 0.3s ease;
-    display: flex; /* Flex display for better alignment */
-    align-items: center; /* Align items vertically */
 }
 
 .track-item:hover, .artist-item:hover {
@@ -69,19 +65,13 @@ body {
 
 .track-info {
     display: flex;
-    flex-direction: column; /* Stack track info vertically */
-    align-items: flex-start; /* Align items to the start */
+    flex-direction: column;
+    align-items: flex-start;
 }
 
 @keyframes slideInFromLeft {
-    0% {
-        transform: translateX(-100%);
-        opacity: 0;
-    }
-    100% {
-        transform: translateX(0);
-        opacity: 1;
-    }
+    0% { transform: translateX(-100%); opacity: 0; }
+    100% { transform: translateX(0); opacity: 1; }
 }
 
 .track-item, .artist-item {
