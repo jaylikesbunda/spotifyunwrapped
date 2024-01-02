@@ -88,18 +88,31 @@ document.addEventListener('DOMContentLoaded', () => {
 	  }
 	}
 
-	function clearPreviousContent() {
-	  const sections = ['top-tracks', 'top-artists', 'listening-statistics'];
-	  sections.forEach((sectionId) => {
-		const section = document.getElementById(sectionId);
-		section.innerHTML = ''; // Clear section content
-		// Remove existing "Show More" button if present
-		const showMoreButton = section.parentNode.querySelector('.show-more');
-		if (showMoreButton) {
-		  showMoreButton.remove();
+	function clearContent() {
+	  // Define IDs of the sections to be cleared
+	  const sectionIds = ['top-tracks', 'top-artists', 'listening-statistics'];
+
+	  // Iterate over each section ID
+	  sectionIds.forEach(id => {
+		// Find the section element by its ID
+		const sectionElement = document.getElementById(id);
+
+		// Check if the section element exists
+		if (sectionElement) {
+		  // Clear the inner HTML of the section
+		  sectionElement.innerHTML = '';
+
+		  // Locate and remove the "Show More" button if it exists
+		  const moreButton = sectionElement.parentNode.querySelector('.show-more');
+		  if (moreButton) {
+			moreButton.remove();
+		  }
+		} else {
+		  console.error(`Element with ID ${id} not found.`);
 		}
 	  });
 	}
+
 
 	// Revised showLoading function to be more robust
 	function showLoading() {
@@ -178,31 +191,31 @@ document.addEventListener('DOMContentLoaded', () => {
 		}
 	}
 
+	// Make sure the container exists before trying to toggle visibility
 	function toggleVisibleItems(containerId, shouldExpand) {
 		const container = document.getElementById(containerId);
-		const items = container.querySelectorAll('.item'); // Select all items
-		const limit = shouldExpand ? items.length : 5; // Decide the limit based on shouldExpand flag
+		if (container) {
+		  toggleVisibleItems(containerId, shouldExpand);
+		} else {
+		  console.error('No container found with ID:', containerId);
+		}
 
-		items.forEach((item, index) => {
-			item.style.display = index < limit ? 'block' : 'none';
-		});
 
-		// Update the button text accordingly
-		const button = container.parentNode.querySelector('.show-more');
+	  const items = container.querySelectorAll('.item'); // Select all items
+	  const limit = shouldExpand ? items.length : 5; // Decide the limit based on shouldExpand flag
+
+	  items.forEach((item, index) => {
+		item.style.display = index < limit ? 'block' : 'none';
+	  });
+
+	  // Update the button text accordingly
+	  const button = container.parentNode.querySelector('.show-more');
+	  if (button) { // Check if button exists
 		button.textContent = shouldExpand ? 'Show Less' : 'Show More';
 		button.dataset.expanded = shouldExpand;
+	  }
 	}
-
-	// Add event listener to the "Show More/Less" button
-	document.querySelectorAll('.show-more').forEach(button => {
-		button.addEventListener('click', () => {
-			const targetId = button.dataset.target;
-			const isExpanded = button.dataset.expanded === 'true';
-			toggleVisibleItems(targetId, !isExpanded);
-		});
-	});
-
-	// Create 'Show More/Less' button
+		// Create 'Show More/Less' button
 	function createShowMoreButton(targetId) {
 		const button = document.createElement('button');
 		button.className = 'btn show-more';
@@ -462,4 +475,5 @@ document.addEventListener('DOMContentLoaded', () => {
 		history.replaceState(null, null, ' ');
 		return hashParams;
 	}
+
 }); 
