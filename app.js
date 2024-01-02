@@ -178,15 +178,29 @@ document.addEventListener('DOMContentLoaded', () => {
 		}
 	}
 
-	// Toggle the visibility of items in a section
-	function toggleVisibleItems(section, limit) {
-		const items = section.getElementsByClassName('item'); // Adjust class name if necessary
-		for (let i = 0; i < items.length; i++) {
-			items[i].style.display = i < limit ? 'block' : 'none';
-		}
+	function toggleVisibleItems(containerId, shouldExpand) {
+		const container = document.getElementById(containerId);
+		const items = container.querySelectorAll('.item'); // Select all items
+		const limit = shouldExpand ? items.length : 5; // Decide the limit based on shouldExpand flag
+
+		items.forEach((item, index) => {
+			item.style.display = index < limit ? 'block' : 'none';
+		});
+
+		// Update the button text accordingly
+		const button = container.parentNode.querySelector('.show-more');
+		button.textContent = shouldExpand ? 'Show Less' : 'Show More';
+		button.dataset.expanded = shouldExpand;
 	}
 
-
+	// Add event listener to the "Show More/Less" button
+	document.querySelectorAll('.show-more').forEach(button => {
+		button.addEventListener('click', () => {
+			const targetId = button.dataset.target;
+			const isExpanded = button.dataset.expanded === 'true';
+			toggleVisibleItems(targetId, !isExpanded);
+		});
+	});
 
 	// Create 'Show More/Less' button
 	function createShowMoreButton(targetId) {

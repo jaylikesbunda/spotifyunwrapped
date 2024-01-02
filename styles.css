@@ -6,11 +6,10 @@
     --error-color: #e63946;
     --border-radius: 50px;
     --font-family: 'Roboto', sans-serif;
-    --base-padding: 20px;
-    --base-margin: 20px;
+    --base-padding: 1.25rem; /* Use rems for scalability */
+    --base-margin: 1.25rem;
     --transition-speed: 0.3s;
-    --grid-gap: 10px;
-    --item-min-width: 120px; /* Minimum width for grid items */
+    --grid-gap: 1rem;
     --item-ratio: 1; /* 1 for square items */
 }
 
@@ -46,7 +45,7 @@ body {
 
 .container {
     width: 90%;
-    max-width: 1200px;
+    max-width: 75rem; /* Use rems for max-width */
     margin: auto;
 }
 
@@ -129,7 +128,7 @@ body {
 
 .grid-layout {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(var(--item-min-width), 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr)); /* Use rems */
     gap: var(--grid-gap);
     margin-bottom: var(--base-margin);
 }
@@ -141,10 +140,10 @@ body {
 }
 
 .grid-layout .item img {
-    width: 100%; /* Make image width responsive to the size of the item */
-    height: auto; /* Maintain aspect ratio */
-    max-height: calc(var(--item-min-width) * var(--item-ratio)); /* Maximum height based on item width and desired ratio */
-    object-fit: cover; /* Ensure the cover fits even if aspect ratio changes */
+    width: 100%;
+    height: auto;
+    max-height: 100%; /* Set max-height to 100% for consistency */
+    object-fit: cover;
     border-radius: var(--border-radius);
 }
 
@@ -180,15 +179,15 @@ body {
     transform: translateX(-50%);
 }
 
-/* Responsive Design: Adjustments for smaller screens */
+/* Responsive Design: Adjust grid item size based on the viewport */
 @media (max-width: 768px) {
-    :root {
-        --item-min-width: 80px; /* Smaller item width for smaller screens */
+    .grid-layout {
+        grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr)); /* Smaller min-width */
     }
 }
 
 @media (max-width: 480px) {
-    :root {
-        --item-min-width: 60px; /* Even smaller item width for very small screens */
+    .grid-layout {
+        grid-template-columns: repeat(auto-fit, minmax(8rem, 1fr)); /* Even smaller min-width */
     }
 }
