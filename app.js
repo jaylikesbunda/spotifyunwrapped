@@ -191,31 +191,30 @@ document.addEventListener('DOMContentLoaded', () => {
 		}
 	}
 
-	// Make sure the container exists before trying to toggle visibility
+	// Corrected toggleVisibleItems function
 	function toggleVisibleItems(containerId, shouldExpand) {
 		const container = document.getElementById(containerId);
-		if (container) {
-		  toggleVisibleItems(containerId, shouldExpand);
-		} else {
-		  console.error('No container found with ID:', containerId);
+		if (!container) {
+			console.error('No container found with ID:', containerId);
+			return; // Exit if container is not found
 		}
 
+		const items = container.querySelectorAll('.item'); 
+		const limit = shouldExpand ? items.length : 5; 
 
-	  const items = container.querySelectorAll('.item'); // Select all items
-	  const limit = shouldExpand ? items.length : 5; // Decide the limit based on shouldExpand flag
+		items.forEach((item, index) => {
+			item.style.display = index < limit ? 'block' : 'none';
+		});
 
-	  items.forEach((item, index) => {
-		item.style.display = index < limit ? 'block' : 'none';
-	  });
-
-	  // Update the button text accordingly
-	  const button = container.parentNode.querySelector('.show-more');
-	  if (button) { // Check if button exists
-		button.textContent = shouldExpand ? 'Show Less' : 'Show More';
-		button.dataset.expanded = shouldExpand;
-	  }
+		// Update the button text accordingly
+		const button = container.parentNode.querySelector('.show-more');
+		if (button) {
+			button.textContent = shouldExpand ? 'Show Less' : 'Show More';
+			button.dataset.expanded = shouldExpand;
+		}
 	}
-		// Create 'Show More/Less' button
+
+	// Corrected createShowMoreButton function
 	function createShowMoreButton(targetId) {
 		const button = document.createElement('button');
 		button.className = 'btn show-more';
@@ -223,15 +222,13 @@ document.addEventListener('DOMContentLoaded', () => {
 		button.dataset.target = targetId;
 		button.dataset.state = 'less';
 		button.onclick = function() {
-			const target = document.getElementById(this.dataset.target);
 			const isShowingMore = this.dataset.state === 'more';
-			toggleVisibleItems(target, isShowingMore ? 5 : target.children.length);
+			toggleVisibleItems(this.dataset.target, !isShowingMore);
 			this.dataset.state = isShowingMore ? 'less' : 'more';
 			this.textContent = isShowingMore ? 'Show More' : 'Show Less';
 		};
 		return button;
 	}
-
 	// Revised displayUserProfile function
 	function displayUserProfile(profile) {
 	  const imageUrl = profile.images && profile.images.length > 0 ? profile.images[0].url : 'default-profile.png';
