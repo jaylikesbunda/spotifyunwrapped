@@ -1,42 +1,42 @@
 document.addEventListener('DOMContentLoaded', () => {
-    // Spotify API credentials and endpoints
-    const clientId = '949476dd2ad545b68eedc66ccc7fdf8b'; // Replace with your actual client ID
-    const redirectUri = `${window.location.origin}${window.location.pathname}`;
-    const authEndpoint = 'https://accounts.spotify.com/authorize';
-    const scopes = ['user-read-private', 'user-read-email', 'user-top-read'];
+  // Spotify API credentials and endpoints
+  const clientId = '949476dd2ad545b68eedc66ccc7fdf8b'; // Use your actual client ID
+  const redirectUri = `${window.location.origin}${window.location.pathname}`;
+  const authEndpoint = 'https://accounts.spotify.com/authorize';
+  const scopes = ['user-read-private', 'user-read-email', 'user-top-read'];
 
-    // Generating a random state for OAuth 2.0 authentication
-    const state = sessionStorage.getItem('state') || generateRandomString(16);
-    sessionStorage.setItem('state', state);
+  // Generate a random state for OAuth 2.0 authentication
+  const state = sessionStorage.getItem('state') || generateRandomString(16);
+  sessionStorage.setItem('state', state);
 
-    // DOM element references
-    const loginButton = document.getElementById('login-button');
-    const logoutButton = document.getElementById('logout-button');
-    const userProfile = document.getElementById('user-profile');
-    const profileInfo = document.getElementById('profile');
-    const topTracksSection = document.getElementById('top-tracks');
-    const topArtistsSection = document.getElementById('top-artists');
-    const timeRangeDropdown = document.getElementById('time-range'); // Dropdown element reference
+  // References to DOM elements
+  const loginButton = document.getElementById('login-button');
+  const logoutButton = document.getElementById('logout-button');
+  const userProfileSection = document.getElementById('user-profile');
+  const profileInfoSection = document.getElementById('profile');
+  const topTracksContainer = document.getElementById('top-tracks');
+  const topArtistsContainer = document.getElementById('top-artists');
+  const timeRangeSelector = document.getElementById('time-range');
 
-    // Event listeners
-    loginButton.addEventListener('click', initiateLogin);
-    logoutButton.addEventListener('click', logout);
+  // Event listeners
+  loginButton.addEventListener('click', initiateLogin);
+  logoutButton.addEventListener('click', logout);
 
-    // Check if timeRangeDropdown exists before adding an event listener
-    if (timeRangeDropdown) {
-	  // Event listener for time range changes
-	  timeRangeDropdown.addEventListener('change', async (event) => {
-		const timeRange = event.target.value;
-		const accessToken = sessionStorage.getItem('accessToken');
-		if (accessToken) {
-		  clearPreviousContent(); // Clear previous data and buttons
-		  await fetchAllData(accessToken, timeRange); // Fetch new data
-		  await generateSummary(accessToken, timeRange); // Generate the summary for the new time range
-		}
-	  });
+  // Setup the time range selector
+  if (timeRangeSelector) {
+    timeRangeSelector.addEventListener('change', async (event) => {
+      const timeRange = event.target.value;
+      const accessToken = sessionStorage.getItem('accessToken');
+      if (accessToken) {
+        clearContent(); // Ensure this function exists and is correctly defined
+        await fetchAndDisplayData(accessToken, timeRange); // Refactor fetchAllData for clarity
+      }
+    });
+  }
 
-
-    }
+  // OAuth redirection handling
+  handleOAuthRedirect();
+});
 
     // Handling OAuth redirection
     handleRedirect();
@@ -62,6 +62,22 @@ document.addEventListener('DOMContentLoaded', () => {
         }).toString();
         window.location.href = url;
     }
+
+	// Handle OAuth redirect
+	function handleOAuthRedirect() {
+	  const params = getHashParams();
+	  const storedState = sessionStorage.getItem('state');
+	  const accessToken = sessionStorage.getItem('accessToken');
+
+	  if (params.access_token && params.state === storedState) {
+		sessionStorage.setItem('accessToken', params.access_token);
+		updateAppState(true); // Update UI to logged-in state
+		fetchAndDisplayData(params.access_token); // Fetch data with the new token
+	  } else if (accessToken) {
+		updateAppState(true); // User is already logged in
+		fetchAndDisplayData(accessToken); // Fetch data with the existing token
+	  }
+	}
 
 	// Handling redirection after authentication
 	function handleRedirect() {
@@ -179,57 +195,52 @@ document.addEventListener('DOMContentLoaded', () => {
 		hideLoading();
 	  }
 	}
-// Update or create 'Show More/Less' button
-	function updateShowMoreButton(sectionId, itemCount) {
-		const section = document.getElementById(sectionId);
-		let button = section.parentNode.querySelector('.show-more');
-		if (itemCount > 5 && !button) {
-			button = createShowMoreButton(sectionId);
-			section.parentNode.appendChild(button);
-		} else if (itemCount <= 5 && button) {
-			button.remove();
-		}
-	}
-
-	// Adjusted toggleVisibleItems function
-	function toggleVisibleItems(containerId, shouldExpand) {
+	  function updateShowMoreButton(containerId, itemCount) {
 		const container = document.getElementById(containerId);
-		if (!container) {
-			console.error('No container found with ID:', containerId);
-			return; // Exit if container is not found
+		let showMoreButton = container.nextElementSibling;
+		// Determine if the show more button should be shown
+		if (itemCount > 5 && !showMoreButton) {
+		  // Only create the button if it doesn't exist and there are more than 5 items
+		  showMoreButton = createShowMoreButton(containerId);
+		  container.after(showMoreButton);
+		} else if (itemCount <= 5 && showMoreButton) {
+		  // If there are 5 or fewer items, remove the button if it exists
+		  showMoreButton.remove();
 		}
-
-		// Select all items within the container
-		const items = container.querySelectorAll('.item');
-
-		// Display only the top five or all items based on shouldExpand
-		items.forEach((item, index) => {
-			item.style.display = (index < 5 || shouldExpand) ? 'flex' : 'none';
+	  }
+	  function toggleVisibleItems(containerId, showAll) {
+		const container = document.getElementById(containerId);
+		const allItems = container.querySelectorAll('.item');
+		// Change the display based on showAll flag
+		allItems.forEach((item, index) => {
+		  item.style.display = showAll || index < 5 ? 'block' : 'none';
 		});
-
-		// Update the button text accordingly
-		const button = container.parentNode.querySelector('.show-more');
-		if (button) {
-			button.textContent = shouldExpand ? 'Show Less' : 'Show More';
-			button.dataset.expanded = shouldExpand;
+		// Correctly handle the 'Show More/Less' button text
+		const showMoreButton = container.nextElementSibling;
+		if (showMoreButton) {
+		  showMoreButton.textContent = showAll ? 'Show Less' : 'Show More';
+		  showMoreButton.dataset.showAll = showAll.toString();
 		}
-	}
-
-	// Corrected createShowMoreButton function
+	  }
+	// Function to create a 'Show More/Less' button
 	function createShowMoreButton(targetId) {
 		const button = document.createElement('button');
 		button.className = 'btn show-more';
 		button.textContent = 'Show More';
 		button.dataset.target = targetId;
-		button.dataset.state = 'less';
-		button.onclick = function() {
-			const isShowingMore = this.dataset.state === 'more';
-			toggleVisibleItems(this.dataset.target, !isShowingMore);
-			this.dataset.state = isShowingMore ? 'less' : 'more';
-			this.textContent = isShowingMore ? 'Show More' : 'Show Less';
-		};
+		button.dataset.showAll = 'false'; // Attribute to track if all items are shown
+
+		button.addEventListener('click', () => {
+			const target = document.getElementById(button.dataset.target);
+			const showAll = button.dataset.showAll === 'false';
+			toggleVisibleItems(button.dataset.target, showAll);
+			button.dataset.showAll = showAll ? 'true' : 'false';
+			button.textContent = showAll ? 'Show Less' : 'Show More';
+		});
+
 		return button;
 	}
+
 	// Revised displayUserProfile function
 	function displayUserProfile(profile) {
 	  const imageUrl = profile.images && profile.images.length > 0 ? profile.images[0].url : 'default-profile.png';
@@ -273,28 +284,24 @@ document.addEventListener('DOMContentLoaded', () => {
 	  return `<ul class='listening-stats-list'>${listHTML}</ul>`;
 	}
 
-	// Adjusted displayTopTracks function to show only top five by default
+
+	// Function to display top tracks with only top five by default
 	function displayTopTracks(tracks) {
 		const topTracksSection = document.getElementById('top-tracks');
 		if (!tracks || !tracks.items || tracks.items.length === 0) {
-			console.error('Invalid or empty track data');
 			topTracksSection.innerHTML = '<p>No top tracks data available.</p>';
 			return;
 		}
 
-		// Add a class for horizontal layout
+		// Class 'horizontal-layout' will be used for initial state
 		topTracksSection.classList.add('grid-layout', 'horizontal-layout');
-		// Reset the innerHTML to avoid duplication
-		topTracksSection.innerHTML = '';
+		const tracksHtml = tracks.items.map(track => createTrackItem(track)).join('');
+		topTracksSection.innerHTML = tracksHtml;
 
-		// Display only the top five tracks initially
-		const initialTracks = tracks.items.slice(0, 5).map(track => createTrackItem(track)).join('');
-		topTracksSection.innerHTML = initialTracks;
-
-		// Add 'Show More' button if there are more than five tracks
+		// Show only the top five tracks by default
+		toggleVisibleItems('top-tracks', false);
 		updateShowMoreButton('top-tracks', tracks.items.length);
 	}
-
 	function createTrackItem(track) {
 		const image = track.album.images[0] ? track.album.images[0].url : 'default-image.png';
 		return `
@@ -308,24 +315,21 @@ document.addEventListener('DOMContentLoaded', () => {
 		`;
 	}
 
-	// Adjusted displayTopArtists function to show only top five by default
+	// Function to display top artists with only top five by default
 	function displayTopArtists(artists) {
 		const topArtistsSection = document.getElementById('top-artists');
 		if (!artists || !artists.items) {
-			console.error('Invalid artist data');
+			topArtistsSection.innerHTML = '<p>No top artists data available.</p>';
 			return;
 		}
 
-		// Add a class for horizontal layout
+		// Class 'horizontal-layout' will be used for initial state
 		topArtistsSection.classList.add('grid-layout', 'horizontal-layout');
-		// Reset the innerHTML to avoid duplication
-		topArtistsSection.innerHTML = '';
+		const artistsHtml = artists.items.map(artist => createArtistItem(artist)).join('');
+		topArtistsSection.innerHTML = artistsHtml;
 
-		// Display only the top five artists initially
-		const initialArtists = artists.items.slice(0, 5).map(artist => createArtistItem(artist)).join('');
-		topArtistsSection.innerHTML = initialArtists;
-
-		// Add 'Show More' button if there are more than five artists
+		// Show only the top five artists by default
+		toggleVisibleItems('top-artists', false);
 		updateShowMoreButton('top-artists', artists.items.length);
 	}
 	function createArtistItem(artist) {
@@ -432,32 +436,30 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 	function updateAppState(isLoggedIn) {
-		const loginSection = document.getElementById('login-section');
-		const userProfileSection = document.getElementById('user-profile');
-		const statsSection = document.getElementById('stats-section');
-		const summarySection = document.getElementById('summary-section');
-		const timeRangeSelector = document.getElementById('time-range');
-		const logoutButton = document.getElementById('logout-button');
+	  // Toggle visibility of sections based on user authentication state
+	  document.getElementById('login-section').classList.toggle('hidden', isLoggedIn);
+	  userProfileSection.classList.toggle('hidden', !isLoggedIn);
+	  document.getElementById('logout-button').classList.toggle('hidden', !isLoggedIn);
+
+	  // Toggle the time range selector
+	  if (timeRangeSelector) {
+		timeRangeSelector.classList.toggle('hidden', !isLoggedIn);
+	  }
+
+	  // Toggle visibility of statistics and summary if logged in
+	  const sectionsToShowOrHide = ['stats-section', 'summary-section'];
+	  sectionsToShowOrHide.forEach(sectionId => {
+		const section = document.getElementById(sectionId);
+		if (section) {
+		  section.classList.toggle('hidden', !isLoggedIn);
+		}
+	  });
+
+	  // Remove any 'Show More' buttons if the user is not logged in
+	  if (!isLoggedIn) {
 		const showMoreButtons = document.querySelectorAll('.show-more');
 		showMoreButtons.forEach(button => button.remove());
-		// Toggle visibility of login/logout sections
-		loginSection.classList.toggle('hidden', isLoggedIn);
-		userProfileSection.classList.toggle('hidden', !isLoggedIn);
-		logoutButton.classList.toggle('hidden', !isLoggedIn);
-
-		// Check if timeRangeSelector exists before toggling its visibility
-		if (timeRangeSelector) {
-			timeRangeSelector.classList.toggle('hidden', !isLoggedIn);
-		}
-
-		// Manage the visibility of stats and summary sections
-		if (isLoggedIn) {
-			statsSection.classList.remove('hidden');
-			summarySection.classList.remove('hidden');
-		} else {
-			statsSection.classList.add('hidden');
-			summarySection.classList.add('hidden');
-		}
+	  }
 	}
 
 	// Helper function to toggle element visibility

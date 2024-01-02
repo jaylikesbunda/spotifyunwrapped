@@ -8,51 +8,47 @@
     <title>Spotify Unwrapped</title>
 </head>
 <body>
-    <div id="main-content" class="container">
+    <main id="main-content" class="container">
         <header class="main-header">
-            <h1 class="title">Spotify Unwrapped</h1>
+            <h1>Spotify Unwrapped</h1>
         </header>
         <section id="login-section" class="login-section">
             <button id="login-button" class="btn spotify-login-btn">Log in with Spotify</button>
         </section>
         <section id="user-profile" class="user-profile hidden">
             <div id="profile" class="profile-info"></div>
-			<div class="time-range-selector">
-				<label for="time-range">Select time range:</label>
-				<select id="time-range" class="time-range-select">
-					<option value="short_term">Last 4 weeks</option>
-					<option value="medium_term">Last 6 months</option>
-					<option value="long_term">All time</option>
-				</select>
-			</div>
-            <!-- Summary Section -->
-            <div id="summary-section" class="summary-section hidden">
+            <div class="time-range-selector">
+                <label for="time-range">Select time range:</label>
+                <select id="time-range" class="time-range-select">
+                    <option value="short_term">Last 4 weeks</option>
+                    <option value="medium_term">Last 6 months</option>
+                    <option value="long_term">All time</option>
+                </select>
+            </div>
+            <section id="summary-section" class="summary-section hidden">
                 <h2>Your Spotify Summary</h2>
                 <div id="summary-content"></div>
-            </div>
-
-            <!-- Stats Section with Show More Buttons -->
-            <div id="stats-section" class="stats-section hidden">
-                <div id="top-tracks-section" class="top-tracks-section">
+            </section>
+            <section id="stats-section" class="stats-section hidden">
+                <article id="top-tracks-section" class="top-tracks-section">
                     <h2>Top Tracks</h2>
-                    <div class="content limited" id="top-tracks"></div>
-                    <button class="btn show-more" data-target="top-tracks">Show More</button>
-                </div>
-                <div id="top-artists-section" class="top-artists-section">
+                    <div id="top-tracks" class="content limited"></div>
+                    <!-- 'Show More' button will be appended here by JavaScript if needed -->
+                </article>
+                <article id="top-artists-section" class="top-artists-section">
                     <h2>Top Artists</h2>
-                    <div class="content limited" id="top-artists"></div>
-                    <button class="btn show-more" data-target="top-artists">Show More</button>
-                </div>
-                <div id="listening-statistics-section" class="listening-statistics-section">
+                    <div id="top-artists" class="content limited"></div>
+                    <!-- 'Show More' button will be appended here by JavaScript if needed -->
+                </article>
+                <article id="listening-statistics-section" class="listening-statistics-section">
                     <h2>Listening Statistics</h2>
                     <div class="stats-container limited"></div>
-                    <button class="btn show-more" data-target="listening-statistics">Show More</button>
-                </div>
-            </div>
-
+                    <!-- 'Show More' button will be appended here by JavaScript if needed -->
+                </article>
+            </section>
             <button id="logout-button" class="btn spotify-logout-btn hidden">Log Out</button>
         </section>
-    </div>
+    </main>
     <script src="utils.js"></script>
     <script src="app.js"></script>
 </body>
