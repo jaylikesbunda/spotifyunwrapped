@@ -113,45 +113,14 @@ document.addEventListener('DOMContentLoaded', () => {
 	  loader.style.visibility = 'visible'; // Use visibility to maintain layout
 	}
 
-	// Revised hideLoading function
 	function hideLoading() {
 	  const loader = document.getElementById('loading-indicator');
 	  if (loader) {
-		loader.style.visibility = 'hidden'; // Use visibility to maintain layout
+		loader.style.visibility = 'hidden';
 	  }
 	}
-
-    async function fetchAllData(token, timeRange = 'medium_term') {
-        showLoading();
-        try {
-            const profilePromise = fetchData('https://api.spotify.com/v1/me', token);
-            const topTracksPromise = fetchData(`https://api.spotify.com/v1/me/top/tracks?time_range=${timeRange}`, token);
-            const topArtistsPromise = fetchData(`https://api.spotify.com/v1/me/top/artists?time_range=${timeRange}`, token);
-            const listeningStatsPromise = fetchListeningStatistics(token, timeRange);
-
-            const [profile, topTracks, topArtists, listeningStats] = await Promise.all([profilePromise, topTracksPromise, topArtistsPromise, listeningStatsPromise]);
-
-            displayUserProfile(profile);
-            displayTopTracks(topTracks);
-            displayTopArtists(topArtists);
-            displayListeningStatistics(listeningStats);
-            await generateSummary(token, timeRange, listeningStats);
-            updateAppState(true);
-        } catch (error) {
-            handleError(error);
-        } finally {
-            hideLoading();
-        }
-    }
-
-
-	// Function to fetch recently played tracks
-	async function fetchRecentlyPlayed(token) {
-		return await fetchData('https://api.spotify.com/v1/me/player/recently-played', token);
-	}
-
-	async function fetchData(url, token) {
-	  const proxyUrl = 'https://cors-anywhere.herokuapp.com/'; // For development purposes
+	async function fetchData(url, token, retries = 3, backoff = 300) {
+	  const proxyUrl = 'https://cors-anywhere.herokuapp.com/';
 	  const spotifyUrl = proxyUrl + url;
 	  try {
 		const response = await fetch(spotifyUrl, {
@@ -161,44 +130,79 @@ document.addEventListener('DOMContentLoaded', () => {
 		  }
 		});
 		if (!response.ok) {
+		  if (response.status === 429 && retries > 0) { // API rate limit hit
+			await new Promise(resolve => setTimeout(resolve, backoff));
+			return fetchData(url, token, retries - 1, backoff * 2); // Exponential backoff
+		  }
 		  throw new Error(`HTTP error! status: ${response.status}`);
 		}
-		const data = await response.json();
-		if (!data) {
-		  throw new Error('No data returned from the Spotify API');
-		}
-		return data;
+		return await response.json();
 	  } catch (error) {
-		console.error(`Error fetching data from ${url}:`, error);
-		throw error; // Re-throw error to be handled by caller
+		throw error; // Re-throw the error for the caller to handle
 	  }
 	}
 
-	// Revised updateShowMoreButton function
+	// Revised fetchAllData function
+	async function fetchAllData(token, timeRange = 'medium_term') {
+	  showLoading();
+	  try {
+		// Fetch all data before proceeding
+		const profilePromise = fetchData('https://api.spotify.com/v1/me', token);
+		const topTracksPromise = fetchData(`https://api.spotify.com/v1/me/top/tracks?time_range=${timeRange}`, token);
+		const topArtistsPromise = fetchData(`https://api.spotify.com/v1/me/top/artists?time_range=${timeRange}`, token);
+		const listeningStatsPromise = fetchListeningStatistics(token, timeRange);
+
+		const [profile, topTracks, topArtists, listeningStats] = await Promise.all([profilePromise, topTracksPromise, topArtistsPromise, listeningStatsPromise]);
+
+		// Display data only after all fetches are complete
+		displayUserProfile(profile);
+		displayTopTracks(topTracks);
+		displayTopArtists(topArtists);
+		displayListeningStatistics(listeningStats);
+		await generateSummary(token, timeRange, listeningStats);
+	  } catch (error) {
+		handleError(error);
+	  } finally {
+		hideLoading();
+	  }
+	}
+// Update or create 'Show More/Less' button
 	function updateShowMoreButton(sectionId, itemCount) {
-	  const section = document.getElementById(sectionId);
-	  let button = section.parentNode.querySelector('.show-more');
-	  if (itemCount > 5 && !button) {
-		// Create the button if there are more than 5 items and no button exists
-		button = createShowMoreButton(sectionId);
-		section.parentNode.appendChild(button);
-	  } else if (itemCount <= 5 && button) {
-		// Remove the button if there are 5 or fewer items
-		button.remove();
-	  }
+		const section = document.getElementById(sectionId);
+		let button = section.parentNode.querySelector('.show-more');
+		if (itemCount > 5 && !button) {
+			button = createShowMoreButton(sectionId);
+			section.parentNode.appendChild(button);
+		} else if (itemCount <= 5 && button) {
+			button.remove();
+		}
 	}
 
-	// Simplified createShowMoreButton function
+	// Toggle the visibility of items in a section
+	function toggleVisibleItems(section, limit) {
+		const items = section.getElementsByClassName('item'); // Adjust class name if necessary
+		for (let i = 0; i < items.length; i++) {
+			items[i].style.display = i < limit ? 'block' : 'none';
+		}
+	}
+
+
+
+	// Create 'Show More/Less' button
 	function createShowMoreButton(targetId) {
-	  const button = document.createElement('button');
-	  button.className = 'btn show-more';
-	  button.textContent = 'Show More';
-	  button.dataset.target = targetId;
-	  button.dataset.state = 'less'; // Initialize the button state to 'less'
-	  button.addEventListener('click', function() {
-		toggleShowMore(targetId, this);
-	  });
-	  return button;
+		const button = document.createElement('button');
+		button.className = 'btn show-more';
+		button.textContent = 'Show More';
+		button.dataset.target = targetId;
+		button.dataset.state = 'less';
+		button.onclick = function() {
+			const target = document.getElementById(this.dataset.target);
+			const isShowingMore = this.dataset.state === 'more';
+			toggleVisibleItems(target, isShowingMore ? 5 : target.children.length);
+			this.dataset.state = isShowingMore ? 'less' : 'more';
+			this.textContent = isShowingMore ? 'Show More' : 'Show Less';
+		};
+		return button;
 	}
 
 	// Revised displayUserProfile function
@@ -245,20 +249,20 @@ document.addEventListener('DOMContentLoaded', () => {
 	}
 
 	function displayTopTracks(tracks) {
-	  const topTracksSection = document.getElementById('top-tracks');
-	  if (!tracks || !tracks.items || tracks.items.length === 0) {
-		console.error('Invalid or empty track data');
-		topTracksSection.innerHTML = '<p>No top tracks data available.</p>';
-		return;
-	  }
+		const topTracksSection = document.getElementById('top-tracks');
+		if (!tracks || !tracks.items || tracks.items.length === 0) {
+			console.error('Invalid or empty track data');
+			topTracksSection.innerHTML = '<p>No top tracks data available.</p>';
+			return;
+		}
 
-	  topTracksSection.classList.add('grid-layout');
-	  const trackItemsHtml = tracks.items.map(track => createTrackItem(track)).join('');
-	  topTracksSection.innerHTML = trackItemsHtml;
+		topTracksSection.classList.add('grid-layout');
+		const trackItemsHtml = tracks.items.map(track => createTrackItem(track)).join('');
+		topTracksSection.innerHTML = trackItemsHtml;
 
-	  // Add or update the 'Show More' button based on the number of tracks
-	  updateShowMoreButton('top-tracks', tracks.items.length);
-	  toggleVisibleItems(topTracksSection, 5);
+		// Add or update the 'Show More' button based on the number of tracks
+		updateShowMoreButton('top-tracks', tracks.items.length);
+		toggleVisibleItems(topTracksSection, 5);
 	}
 	function createTrackItem(track) {
 		const image = track.album.images[0] ? track.album.images[0].url : 'default-image.png';
@@ -274,24 +278,21 @@ document.addEventListener('DOMContentLoaded', () => {
 	}
 
 	function displayTopArtists(artists) {
+		const topArtistsSection = document.getElementById('top-artists');
 		if (!artists || !artists.items) {
 			console.error('Invalid artist data');
 			return;
 		}
-		const topArtistsSection = document.getElementById('top-artists');
-		topArtistsSection.classList.add('grid-layout'); // Add grid layout class
+
+		topArtistsSection.classList.add('grid-layout');
 		topArtistsSection.innerHTML = artists.items.map(artist => createArtistItem(artist)).join('');
 
 		// Slice the array to only show the first 5 items initially
 		toggleVisibleItems(topArtistsSection, 5);
 
 		// Add 'Show More' button if there are more artists
-		if (artists.items.length > 5) {
-			const showMoreButton = updateShowMoreButton('top-artists');
-			topArtistsSection.parentNode.appendChild(showMoreButton);
-		}
+		updateShowMoreButton('top-artists', artists.items.length);
 	}
-
 	function createArtistItem(artist) {
 		const image = artist.images[0] ? artist.images[0].url : 'default-image.png';
 		return `
@@ -422,6 +423,14 @@ document.addEventListener('DOMContentLoaded', () => {
 			statsSection.classList.add('hidden');
 			summarySection.classList.add('hidden');
 		}
+	}
+
+	// Helper function to toggle element visibility
+	function toggleElementVisibility(elementId, shouldShow) {
+	  const element = document.getElementById(elementId);
+	  if (element) {
+		element.classList.toggle('hidden', !shouldShow);
+	  }
 	}
 
 

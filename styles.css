@@ -9,6 +9,9 @@
     --base-padding: 20px;
     --base-margin: 20px;
     --transition-speed: 0.3s;
+    --grid-gap: 10px;
+    --item-min-width: 120px; /* Minimum width for grid items */
+    --item-ratio: 1; /* 1 for square items */
 }
 
 body {
@@ -23,7 +26,6 @@ body {
     min-height: 100vh;
     text-align: center;
 }
-
 .btn {
     background-color: var(--primary-color);
     color: var(--text-color);
@@ -121,13 +123,29 @@ body {
     padding: 8px 16px;
     font-size: 12px;
     align-self: center;
+    max-width: 200px; /* Set a maximum width */
 }
+
 
 .grid-layout {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-    gap: 10px;
+    grid-template-columns: repeat(auto-fit, minmax(var(--item-min-width), 1fr));
+    gap: var(--grid-gap);
     margin-bottom: var(--base-margin);
+}
+
+/* Ensuring the images and items do not overflow their containers */
+.grid-layout .item {
+    width: 100%; /* Force the item to occupy full width of the grid column */
+    overflow: hidden; /* Prevent images from overflowing */
+}
+
+.grid-layout .item img {
+    width: 100%; /* Make image width responsive to the size of the item */
+    height: auto; /* Maintain aspect ratio */
+    max-height: calc(var(--item-min-width) * var(--item-ratio)); /* Maximum height based on item width and desired ratio */
+    object-fit: cover; /* Ensure the cover fits even if aspect ratio changes */
+    border-radius: var(--border-radius);
 }
 
 .summary-tile {
@@ -162,17 +180,15 @@ body {
     transform: translateX(-50%);
 }
 
+/* Responsive Design: Adjustments for smaller screens */
 @media (max-width: 768px) {
-    .btn, .time-range-select, #logout-button {
-        width: 90%;
-        left: 5%;
-        transform: none;
+    :root {
+        --item-min-width: 80px; /* Smaller item width for smaller screens */
     }
 }
 
 @media (max-width: 480px) {
-    .container, .track-info, .item, .image {
-        width: 100%;
-        padding: 10px;
+    :root {
+        --item-min-width: 60px; /* Even smaller item width for very small screens */
     }
 }
