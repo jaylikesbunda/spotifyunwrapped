@@ -191,7 +191,7 @@ document.addEventListener('DOMContentLoaded', () => {
 		}
 	}
 
-	// Corrected toggleVisibleItems function
+	// Adjusted toggleVisibleItems function
 	function toggleVisibleItems(containerId, shouldExpand) {
 		const container = document.getElementById(containerId);
 		if (!container) {
@@ -199,11 +199,12 @@ document.addEventListener('DOMContentLoaded', () => {
 			return; // Exit if container is not found
 		}
 
-		const items = container.querySelectorAll('.item'); 
-		const limit = shouldExpand ? items.length : 5; 
+		// Select all items within the container
+		const items = container.querySelectorAll('.item');
 
+		// Display only the top five or all items based on shouldExpand
 		items.forEach((item, index) => {
-			item.style.display = index < limit ? 'block' : 'none';
+			item.style.display = (index < 5 || shouldExpand) ? 'flex' : 'none';
 		});
 
 		// Update the button text accordingly
@@ -272,6 +273,7 @@ document.addEventListener('DOMContentLoaded', () => {
 	  return `<ul class='listening-stats-list'>${listHTML}</ul>`;
 	}
 
+	// Adjusted displayTopTracks function to show only top five by default
 	function displayTopTracks(tracks) {
 		const topTracksSection = document.getElementById('top-tracks');
 		if (!tracks || !tracks.items || tracks.items.length === 0) {
@@ -280,14 +282,19 @@ document.addEventListener('DOMContentLoaded', () => {
 			return;
 		}
 
-		topTracksSection.classList.add('grid-layout');
-		const trackItemsHtml = tracks.items.map(track => createTrackItem(track)).join('');
-		topTracksSection.innerHTML = trackItemsHtml;
+		// Add a class for horizontal layout
+		topTracksSection.classList.add('grid-layout', 'horizontal-layout');
+		// Reset the innerHTML to avoid duplication
+		topTracksSection.innerHTML = '';
 
-		// Add or update the 'Show More' button based on the number of tracks
+		// Display only the top five tracks initially
+		const initialTracks = tracks.items.slice(0, 5).map(track => createTrackItem(track)).join('');
+		topTracksSection.innerHTML = initialTracks;
+
+		// Add 'Show More' button if there are more than five tracks
 		updateShowMoreButton('top-tracks', tracks.items.length);
-		toggleVisibleItems(topTracksSection, 5);
 	}
+
 	function createTrackItem(track) {
 		const image = track.album.images[0] ? track.album.images[0].url : 'default-image.png';
 		return `
@@ -301,6 +308,7 @@ document.addEventListener('DOMContentLoaded', () => {
 		`;
 	}
 
+	// Adjusted displayTopArtists function to show only top five by default
 	function displayTopArtists(artists) {
 		const topArtistsSection = document.getElementById('top-artists');
 		if (!artists || !artists.items) {
@@ -308,13 +316,16 @@ document.addEventListener('DOMContentLoaded', () => {
 			return;
 		}
 
-		topArtistsSection.classList.add('grid-layout');
-		topArtistsSection.innerHTML = artists.items.map(artist => createArtistItem(artist)).join('');
+		// Add a class for horizontal layout
+		topArtistsSection.classList.add('grid-layout', 'horizontal-layout');
+		// Reset the innerHTML to avoid duplication
+		topArtistsSection.innerHTML = '';
 
-		// Slice the array to only show the first 5 items initially
-		toggleVisibleItems(topArtistsSection, 5);
+		// Display only the top five artists initially
+		const initialArtists = artists.items.slice(0, 5).map(artist => createArtistItem(artist)).join('');
+		topArtistsSection.innerHTML = initialArtists;
 
-		// Add 'Show More' button if there are more artists
+		// Add 'Show More' button if there are more than five artists
 		updateShowMoreButton('top-artists', artists.items.length);
 	}
 	function createArtistItem(artist) {

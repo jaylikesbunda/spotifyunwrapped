@@ -78,6 +78,18 @@ body {
     align-items: center;
 }
 
+.horizontal-layout {
+    display: flex;
+    overflow-x: auto;
+    margin-bottom: var(--base-margin);
+}
+
+.horizontal-layout .track-item .artist-item {
+    flex: 0 0 auto; /* Prevent flex items from growing but allow them to shrink */
+    margin-right: var(--grid-gap);
+}
+
+
 .listening-stats-list, .listening-stats-item {
     list-style: none;
     padding: 0;
